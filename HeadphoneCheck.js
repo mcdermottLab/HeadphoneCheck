@@ -16,7 +16,7 @@
 
 	//FUNCTIONS FOR INITIALIZING THE STIMULI AND SHUFFLING THE JSON FILE
  	function shuffleTrials(data) {
-        stimMap = shuffle(data["stim"]); //shuffles the array 
+        stimMap = shuffle(data["stim"]); //shuffles the array
     };
 
 	function checkPassFail(correctThreshold) {
@@ -26,11 +26,11 @@
 		else { return false; }
 	};
 
-	function stim_play(stimFile) {
+	function playStim(stimFile) {
 		$('#' + stimFile).get(0).play();
 	};
 
-	function clickDisable(buttonID) {
+	function disableClick(buttonID) {
         $('#' + buttonID).prop('disabled', true);
 	};
 
@@ -52,28 +52,28 @@
 
 		  return array;
 		};
-    
+
     //renderHTML takes in the stimulus ID and the stimulus file and creates a div element with everything needed to play and respond to this sound
     function renderOneTrialHTML(stimDiv, stimID, stimFile) {
     	var divID = "stim"+stimID
     	console.log(divID);
-    	$('<div />', {id: divID}).appendTo(('#' + stimDiv));
+    	$('<div />', {id: divID, class: 'trialDiv'}).appendTo(('#' + stimDiv));
 
     	//add in the audio source
-    	
+
     	$('<audio />',{
     			id: 'audio' + stimID,
-    			type: 'audio/mpeg',
+    			type: 'audio/mpeg', // TODO: Factor this out, should be user defined
     			src: stimFile
     		}).appendTo($('#' + divID));
 
 		//add in the button for playing the sound
     	$('<button />', {
-    		id: 'b' + stimID, 
+    		id: 'b' + stimID,
     		disabled: false,
     		click: function () {
-    			stim_play('audio' + stimID);
-    			clickDisable(this.id);
+    			playStim('audio' + stimID);
+    			disableClick(this.id);
     		},
     		text: 'Play'
     	}).appendTo($('#' + divID));
@@ -89,19 +89,25 @@
     	var radioButtonInfo = [{ "id": "1", "name": "FIRST sound was SOFTEST" }, { "id": "2", "name": "SECOND sound was SOFTEST" }, {"id": "3", "name": "THIRD sound was SOFTEST"}];
 
 		$.each(radioButtonInfo, function() {
-			$("#radioButtons" + stimID).append(
-            	$('<input />', { 
-                	type: 'radio', 
-                	id: 'radio' + this.id,
-                	name: 'radio-resp' + stimID,
-                	value: this.id
-                } ));
+			// $("#radioButtons" + stimID).append(
+   //          	$('<input />', {
+   //              	type: 'radio',
+   //              	id: 'radio' + this.id,
+   //              	name: 'radio-resp' + stimID,
+   //              	value: this.id
+   //              } ));
 			$("#radioButtons" + stimID).append(
           		$('<label />', {
           			for: 'radio' + this.id,
           			class: 'radio-label',
-            		text: this.name                            
-        		}));
+            		text: this.name
+          		}).prepend($('<input />', {
+                    type: 'radio',
+                    id: 'radio' + this.id,
+                    name: 'radio-resp' + stimID,
+                    value: this.id
+                  }))
+              );
 
 		});
 	};
@@ -114,7 +120,7 @@
             dataType: "json",
             url: jsonpath,
             async: false,
-            success: function (data) { 
+            success: function (data) {
                 if (HeadphoneCheck.debug) {
                     console.log("Got configuration data");
                 }
@@ -177,7 +183,7 @@
 
 }( window.HeadphoneCheck = window.HeadphoneCheck || {}, jQuery));
 
-$(document).ready(function() { 
+$(document).ready(function() {
 	jsonpath = "headphone_check_stim.json";
 	HeadphoneCheck.loadExamples(jsonpath);
 	var pageNum = 0;
