@@ -1,0 +1,14 @@
+README/TODO
+
+HeadphoneCheck.js:
+	- two exposed variables: number of examples that you want to show up on a given page, and debug flag
+	- two exposed functions: one for loading stimuli from a json file, one for rendering an HTML page
+	- call the load examples function and then render the first page of the headphone check (with #examplesPerPage on this page)
+
+	-page rendering calls a function which renders individual stimuli on the page
+
+TODO:
+	- it's not actually updating the page correctly because i'm not refreshing the html page to remove all the div elements?
+	- the buttons look wacky because the divs aren't stacking vertically properly
+	- change indentation/collapse stuff (ray)
+	
