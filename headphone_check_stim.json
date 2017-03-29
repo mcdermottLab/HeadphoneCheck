@@ -1,8 +1,10 @@
 {
-	"stim":[{"id":1, "stimFile": "http://mcdermottlab.mit.edu/mturk_stimuli/audio_calibration/antiphase_HC_ISO.wav", "correct":"1"},
-		{"id":2, "stimFile": "http://mcdermottlab.mit.edu/mturk_stimuli/audio_calibration/antiphase_HC_IOS.wav", "correct":"2" },
-		{"id":3, "stimFile": "http://mcdermottlab.mit.edu/mturk_stimuli/audio_calibration/antiphase_HC_SOI.wav", "correct":"3"},
-		{"id":4, "stimFile": "http://mcdermottlab.mit.edu/mturk_stimuli/audio_calibration/antiphase_HC_SIO.wav", "correct":"1"},
-		{"id":5, "stimFile": "http://mcdermottlab.mit.edu/mturk_stimuli/audio_calibration/antiphase_HC_OSI.wav", "correct":"2" },
-		{"id":6, "stimFile": "http://mcdermottlab.mit.edu/mturk_stimuli/audio_calibration/antiphase_HC_OIS.wav", "correct":"3"}]
+  "stim":[
+           {"id":1, "stimFile": "http://mcdermottlab.mit.edu/mturk_stimuli/audio_calibration/antiphase_HC_ISO.wav", "correct":"1"},
+           {"id":2, "stimFile": "http://mcdermottlab.mit.edu/mturk_stimuli/audio_calibration/antiphase_HC_IOS.wav", "correct":"2" },
+           {"id":3, "stimFile": "http://mcdermottlab.mit.edu/mturk_stimuli/audio_calibration/antiphase_HC_SOI.wav", "correct":"3"},
+           {"id":4, "stimFile": "http://mcdermottlab.mit.edu/mturk_stimuli/audio_calibration/antiphase_HC_SIO.wav", "correct":"1"},
+           {"id":5, "stimFile": "http://mcdermottlab.mit.edu/mturk_stimuli/audio_calibration/antiphase_HC_OSI.wav", "correct":"2" },
+           {"id":6, "stimFile": "http://mcdermottlab.mit.edu/mturk_stimuli/audio_calibration/antiphase_HC_OIS.wav", "correct":"3"}
+         ]
 }
