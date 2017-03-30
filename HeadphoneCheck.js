@@ -33,8 +33,21 @@
     else { return false; }
   }
 
-  function playStim(stimFile) {
+  function playStim(stimID) {
+    var stimFile = "audio" + stimID;
+    // set onended callback
+    $('#' + stimFile).on("ended", function() {
+      // reset playback state
+      st_isPlaying = false;
+
+      // activate responses
+      if (requirePlayback) {
+        $('#radioButtons' + stimID).css('pointer-events', 'auto');
+      }
+    });
+
     $('#' + stimFile).get(0).play();
+    st_isPlaying = true;
   }
 
   function disableClick(buttonID) {
@@ -103,12 +116,11 @@
       id: 'b' + stimID,
       disabled: false,
       click: function () {
-        playStim('audio' + stimID);
-        disableClick(this.id);
-        if (requirePlayback) {
-          // activate responses
-          $('#radioButtons' + stimID).css('pointer-events', 'auto');
+        if (!st_isPlaying){
+          playStim(stimID);
+          disableClick(this.id);
         }
+        else {}
       },
       text: 'Play'
     }).appendTo($('#' + divID));
