@@ -5,9 +5,11 @@
   HeadphoneCheck.debug = true;
 
   /*** PRIVATE CONFIGURATION VARIABLES ***/
+  var doShuffleTrials = true;
   var validColor = 'black';
   var warningColor = 'red';
   var requirePlayback = true;
+  var defaultAudioType = 'audio/mpeg';
 
   var totalCorrect = 0;
   var stimMap = [];
@@ -24,6 +26,19 @@
   //FUNCTIONS FOR INITIALIZING THE STIMULI AND SHUFFLING THE JSON FILE
   function shuffleTrials(data) {
     stimMap = shuffle(data.stim); //shuffles the array
+  }
+
+  // TODO: fix this, this doesn't work
+  function parseAudioType(stimID) {
+    console.log('TYPE: ' +stimID);
+    console.log(stimMap)
+    var typeStr = stimMap[stimID];
+    console.log('TYPE: '+typeStr);
+    if (typeStr === undefined) {
+      typeStr = defaultAudioType;
+    }
+    console.log('TYPE: '+typeStr);
+    return typeStr;
   }
 
   function checkPassFail(correctThreshold) {
@@ -107,7 +122,8 @@
     //add in the audio source
     $('<audio/>', {
         id: 'audio' + stimID,
-        type: 'audio/mpeg', // TODO: Factor this out, should be user defined
+        // type: 'audio/mpeg', // TODO: Factor this out, should be user defined
+        // type: parseAudioType(stimID),
         src: stimFile
       }).appendTo($('#' + divID));
 
@@ -173,7 +189,9 @@
             if (HeadphoneCheck.debug) {
                 console.log("Got configuration data");
             }
-            shuffleTrials(data);
+            if (doShuffleTrials) {
+              shuffleTrials(data);
+            }
             console.log(stimMap);
             lastPage = Math.ceil(stimMap.length / HeadphoneCheck.examplesPerPage); //get last page
         }
