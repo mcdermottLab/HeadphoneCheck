@@ -7,10 +7,12 @@
   /*** PRIVATE CONFIGURATION VARIABLES ***/
   var validColor = 'black';
   var warningColor = 'red';
+  var requirePlayback = true;
 
   var totalCorrect = 0;
   var stimMap = [];
   var lastPage;
+  var st_isPlaying = false;
 
   //PRIVATE FUNCTIONS
   function updateCorrect(stim, response) {
@@ -103,6 +105,10 @@
       click: function () {
         playStim('audio' + stimID);
         disableClick(this.id);
+        if (requirePlayback) {
+          // activate responses
+          $('#radioButtons' + stimID).css('pointer-events', 'auto');
+        }
       },
       text: 'Play'
     }).appendTo($('#' + divID));
@@ -115,7 +121,11 @@
     }).appendTo($('#' + divID));
 
     //give the label info for the buttons
-    var radioButtonInfo = [{ "id": "1", "name": "FIRST sound was SOFTEST" }, { "id": "2", "name": "SECOND sound was SOFTEST" }, {"id": "3", "name": "THIRD sound was SOFTEST"}];
+    var radioButtonInfo = [
+                            {"id": "1", "name": "FIRST sound was SOFTEST" },
+                            {"id": "2", "name": "SECOND sound was SOFTEST" },
+                            {"id": "3", "name": "THIRD sound was SOFTEST"}
+                          ];
 
     $.each(radioButtonInfo, function() {
       $("#radioButtons" + stimID).append(
@@ -123,17 +133,22 @@
           for: 'radio' + this.id,
           class: 'radio-label',
           text: this.name
-        }).prepend($('<input/>', {
-                    type: 'radio',
-                    id: 'radio' + this.id,
-                    name: 'radio-resp' + stimID,
-                    class: 'radio-responses',
-                    value: this.id
-                   }))
+        }).prepend(
+            $('<input/>', {
+                type: 'radio',
+                id: 'radio' + this.id,
+                name: 'radio-resp' + stimID,
+                class: 'radio-responses',
+                value: this.id
+            })
+          )
         );
     });
   }
 
+  function teardownHTMLPage(pageNum) {
+    $('#container-exp').empty();
+  }
 
   //PUBLIC FUNCTIONS
   // Load the experiment configuration from the server
@@ -178,10 +193,15 @@
       text: "Test sounds can only be played once!"
     }).appendTo($('#container-exp'));
 
-    //add in a group for each item in stimulus
+    // add in a group for each item in stimulus
     $.each(curStimuli, function () {
       renderOneTrialHTML('container-exp', this.id, this.stimFile);
     });
+
+    if (requirePlayback) {
+      // no response until the sound is played
+      $('.ui-buttonset-vertical').css('pointer-events', 'none');
+    }
 
     // Add button to continue
     $('<button/>', {
@@ -197,6 +217,7 @@
           checkPassFail();
         }
         else if (canContinue) { // Advance the page
+          teardownHTMLPage(pageNum);
           pageNum++;
           HeadphoneCheck.renderHTMLPage(pageNum);
         }
