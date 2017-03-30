@@ -8,7 +8,7 @@
   var doShuffleTrials = true;
   var validColor = 'black';
   var warningColor = 'red';
-  var requirePlayback = true;
+  var requirePlayback = false;
   var defaultAudioType = 'audio/mpeg';
 
   var totalCorrect = 0;
@@ -31,7 +31,7 @@
   // TODO: fix this, this doesn't work
   function parseAudioType(stimID) {
     console.log('TYPE: ' +stimID);
-    console.log(stimMap)
+    console.log(stimMap);
     var typeStr = stimMap[stimID];
     console.log('TYPE: '+typeStr);
     if (typeStr === undefined) {
@@ -127,6 +127,12 @@
         src: stimFile
       }).appendTo($('#' + divID));
 
+    if (HeadphoneCheck.debug) {
+      $('<div/>', {
+          text: 'Trial ID: ' + stimID
+      }).appendTo($('#' + divID));
+    }
+
     //add in the button for playing the sound
     $('<button/>', {
       id: 'b' + stimID,
@@ -194,6 +200,7 @@
             }
             console.log(stimMap);
             lastPage = Math.ceil(stimMap.length / HeadphoneCheck.examplesPerPage); //get last page
+            alert(lastPage)
         }
     });
   };
@@ -243,8 +250,10 @@
         for (stimID = 0; stimID < HeadphoneCheck.examplesPerPage; stimID++) {
           updateCorrect(curStimuli[stimID], $('input[name=radio-resp' + stimID + ']:checked').val());
         }
-        if (pageNum == lastPage) {
+        if (pageNum == lastPage - 1) { // TODO: -1 for indexing; make indexing consistent
+          teardownHTMLPage(pageNum);
           checkPassFail();
+          alert('done with headphone check')
         }
         else if (canContinue) { // Advance the page
           teardownHTMLPage(pageNum);

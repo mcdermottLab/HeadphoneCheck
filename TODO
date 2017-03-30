@@ -8,11 +8,13 @@ HeadphoneCheck.js:
 	-page rendering calls a function which renders individual stimuli on the page
 
 TODO:
-  - Clean up indentation and names
-  - radio button in div styling
-  - page handling
-  - remove jquery ui
-	- it's not actually updating the page correctly because i'm not refreshing the html page to remove all the div elements?
-	- the buttons look wacky because the divs aren't stacking vertically properly
-	- change indentation/collapse stuff (ray)
+  - refactor all callback and event binding to single function? it's pretty messy as it is
+  - do we need a more fine grained warning/feedback system?
+  - check playback counters if `requirePlayback` is false
+  - support for multiple audio sources
+  - fix audio source type
+  - json schema -> what if IDs aren't unique?
+  - render finished page?
+
+
 
