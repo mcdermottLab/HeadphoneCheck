@@ -1,8 +1,9 @@
 (function(HeadphoneCheck, $, undefined) {
 
   /*** PUBLIC CONFIGURATION VARIABLES ***/
-  HeadphoneCheck.examplesPerPage = 3;
+  HeadphoneCheck.examplesPerPage = 2;
   HeadphoneCheck.debug = true;
+  HeadphoneCheck.calibration = true;
 
   /*** PRIVATE CONFIGURATION VARIABLES ***/
   var doShuffleTrials = true;
@@ -13,6 +14,7 @@
 
   var totalCorrect = 0;
   var stimMap = [];
+  var calibration = [];
   var lastPage;
   var st_isPlaying = false;
 
@@ -62,6 +64,15 @@
     });
 
     $("#" + stimFile).get(0).play();
+    st_isPlaying = true;
+  }
+
+  function playCalibration(calibrationFile) {
+    $("#" + calibrationFile).on("ended", function() {
+      // reset playback state
+      st_isPlaying = false;
+    });
+    $("#" + calibrationFile).get(0).play();
     st_isPlaying = true;
   }
 
@@ -180,7 +191,7 @@
     });
   }
 
-  function teardownHTMLPage(pageNum) {
+  function teardownHTMLPage() {
     $("#container-exp").empty();
   }
 
@@ -198,7 +209,11 @@
             if (doShuffleTrials) {
               shuffleTrials(data);
             }
-            console.log(stimMap);
+            console.log("test");
+            if (HeadphoneCheck.calibration) {
+              calibration = data.calibration;
+              console.log(calibration);
+            }
             lastPage = Math.ceil(stimMap.length / HeadphoneCheck.examplesPerPage); //get last page
         }
     });
@@ -210,7 +225,6 @@
     for (i = 0; i < HeadphoneCheck.examplesPerPage; i++) {
       curStimuli.push(stimMap[pageNum * HeadphoneCheck.examplesPerPage + i]);
     }
-    console.log(curStimuli);
 
     $("<div/>", {
       id: "instruct",
@@ -250,12 +264,12 @@
           updateCorrect(curStimuli[stimID], $("input[name=radio-resp" + stimID + "]:checked").val());
         }
         if (pageNum == lastPage - 1) { // TODO: -1 for indexing; make indexing consistent
-          teardownHTMLPage(pageNum);
+          teardownHTMLPage();
           checkPassFail();
           alert("done with headphone check")
         }
         else if (canContinue) { // Advance the page
-          teardownHTMLPage(pageNum);
+          teardownHTMLPage();
           pageNum++;
           HeadphoneCheck.renderHTMLPage(pageNum);
         }
@@ -265,13 +279,84 @@
       }
     }).appendTo($("#container-exp"));
   };
+
+  HeadphoneCheck.renderCalibration = function() {
+    $("<div/>", {
+      id: "instruct",
+      class: "warning",
+      text: "You must be wearing headphones to do this HIT!"
+    }).appendTo($("#container-exp"));
+
+    $("<div/>", {
+      class: "warning",
+      text: "First, set your computer volume to about 25% of maximum."
+    }).appendTo($("#container-exp"));
+
+    $("<div/>", {
+      class: "warning",
+      text: "Level Calibration"
+    }).appendTo($("#container-exp"));
+
+    $("<div/>", {
+      class: "warning",
+      text: "Press the button, then turn up the volume on your computer until the calibration noise is at a loud but comfortable level."
+    }).appendTo($("#container-exp"));
+
+    $("<div/>", {
+      id: "calibration",
+      class: "calibrationDiv",
+      text: "Play the calibration sound as many times as you like."
+    }).appendTo($("#container-exp"));
+
+    //add in the audio source
+    $("<audio/>", {
+        id: "audioCalibration",
+        type: "audio/mpeg", // TODO: Factor this out, should be user defined
+        // type: parseAudioType(stimID),
+        src: calibration.stimFile
+      }).appendTo($("#calibration"));
+
+    //add in the button for playing the sound
+    $("<button/>", {
+      id: "bCalibration" ,
+      disabled: false,
+      click: function () {
+        if (!st_isPlaying){
+          playCalibration("audioCalibration");
+        }
+        $("#continueCalibration").prop('disabled',false)
+      },
+      text: "Play"
+    }).appendTo($("#calibration"));
+
+    $("<div/>", {
+      class: "warning",
+      html: "Press <b>Continue</b> when level calibration is complete."
+    }).appendTo($("#container-exp"));
+
+    // Add button to continue
+    $("<button/>", {
+      id: "continueCalibration",
+      class: "warning",
+      disabled: true,
+      // type: "button",
+      text: "Continue",
+      click: function () {
+        teardownHTMLPage();
+        HeadphoneCheck.renderHTMLPage(0);
+      }
+    }).appendTo($("#container-exp"));
+};
+
+
 }( window.HeadphoneCheck = window.HeadphoneCheck || {}, jQuery));
 
 $(document).ready(function() {
   jsonpath = "headphone_check_stim.json";
   HeadphoneCheck.loadExamples(jsonpath);
   var pageNum = 0;
-  var continueVal = HeadphoneCheck.renderHTMLPage(pageNum);
+  var continueVal = HeadphoneCheck.renderCalibration();
+  //var continueVal = HeadphoneCheck.renderHTMLPage(pageNum);
   if (continueVal) {
     alert("continuing on!");
   }

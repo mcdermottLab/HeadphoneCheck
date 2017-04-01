@@ -6,5 +6,6 @@
            {"id":4, "stimFile": "http://mcdermottlab.mit.edu/mturk_stimuli/audio_calibration/antiphase_HC_SIO.wav", "correct":"1"},
            {"id":5, "stimFile": "http://mcdermottlab.mit.edu/mturk_stimuli/audio_calibration/antiphase_HC_OSI.wav", "correct":"2" },
            {"id":6, "stimFile": "http://mcdermottlab.mit.edu/mturk_stimuli/audio_calibration/antiphase_HC_OIS.wav", "correct":"3"}
-         ]
+         ],
+  "calibration": {"stimFile": "http://mcdermottlab.mit.edu/mturk_stimuli/audio_calibration/noise_calib_stim.wav"}
 }
