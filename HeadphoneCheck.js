@@ -56,15 +56,17 @@
     $("#" + stimFile).on("ended", function() {
       // reset playback state
       st_isPlaying = false;
-
       // activate responses
       if (requirePlayback) {
         $("#radioButtons" + stimID).css("pointer-events", "auto");
       }
     });
 
+    $('#b' + stimID).css('border', 'none');
     $("#" + stimFile).get(0).play();
     st_isPlaying = true;
+    // hack to disable responding during playback
+    $("#radioButtons" + stimID).css("pointer-events", "none");
   }
 
   function playCalibration(calibrationFile) {
@@ -175,13 +177,13 @@
     $.each(radioButtonInfo, function() {
       $("#radioButtons" + stimID).append(
         $("<label/>", {
-          for: "radio" + this.id,
+          for: "radio" + this.id + '-stim' + stimID,
           class: "radio-label",
           text: this.name
         }).prepend(
             $("<input/>", {
                 type: "radio",
-                id: "radio" + this.id,
+                id: "radio" + this.id + '-stim' + stimID,
                 name: "radio-resp" + stimID,
                 class: "radio-responses",
                 value: this.id
@@ -250,7 +252,16 @@
 
     if (requirePlayback) {
       // no response until the sound is played
-      $(".ui-buttonset-vertical").css("pointer-events", "none");
+      $(".ui-buttonset-vertical").click(function(event) {
+        console.log(event.target);
+        var parentPlayButton = $(event.target).parents().filter('.trialDiv').find('button');
+        console.log($(parentPlayButton).prop('disabled'))
+        // if the play button isn't disabled, it hasn't been played, so show a warning
+        if (!$(parentPlayButton).prop('disabled')) {
+          $(parentPlayButton).css('border', '3px solid red');
+          event.preventDefault();
+        }
+      });
     }
 
     // Add button to continue
@@ -266,7 +277,7 @@
         if (pageNum == lastPage - 1) { // TODO: -1 for indexing; make indexing consistent
           teardownHTMLPage();
           checkPassFail();
-          alert("done with headphone check")
+          alert("done with headphone check");
         }
         else if (canContinue) { // Advance the page
           teardownHTMLPage();
@@ -324,7 +335,7 @@
         if (!st_isPlaying){
           playCalibration("audioCalibration");
         }
-        $("#continueCalibration").prop('disabled',false)
+        $("#continueCalibration").prop('disabled',false);
       },
       text: "Play"
     }).appendTo($("#calibration"));
@@ -355,8 +366,8 @@ $(document).ready(function() {
   jsonpath = "headphone_check_stim.json";
   HeadphoneCheck.loadExamples(jsonpath);
   var pageNum = 0;
-  var continueVal = HeadphoneCheck.renderCalibration();
-  //var continueVal = HeadphoneCheck.renderHTMLPage(pageNum);
+  // var continueVal = HeadphoneCheck.renderCalibration();
+  var continueVal = HeadphoneCheck.renderHTMLPage(pageNum);
   if (continueVal) {
     alert("continuing on!");
   }
