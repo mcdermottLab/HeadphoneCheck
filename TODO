@@ -8,6 +8,18 @@ HeadphoneCheck.js:
 	-page rendering calls a function which renders individual stimuli on the page
 
 TODO:
+  - fire events on all major state changes (in parenthesis means not required)
+    + overall begin/end
+    + stim json success/fail
+    + calibration begin/end
+    + headphone check begin/end
+    + (renderHTMLPage with pageNum data)
+    + (per trial rendering seems like overkill)
+
+  - fine grained detail of response per trial
+  - local storage progress caching
+    + we need to track per trial responses and playback status (probably easier than infering from disabled button states)
+
   - refactor all callback and event binding to single function? it's pretty messy as it is
   - do we need a more fine grained warning/feedback system?
   - check playback counters if `requirePlayback` is false
