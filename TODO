@@ -12,6 +12,8 @@ TODO:
     flows onto multiple lines for some but not all responses. it should be the
     same for all.
 
+  - shouldn't allow playing the next sound before responding to the current one
+
   # 6-15-2017
   - calibration sound should be configurable
   - Put example sounds on AWS S3
