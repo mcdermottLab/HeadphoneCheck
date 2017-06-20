@@ -8,6 +8,10 @@ HeadphoneCheck.js:
 	-page rendering calls a function which renders individual stimuli on the page
 
 TODO:
+  - when browser is thin (say half of screen size on laptop), the response text
+    flows onto multiple lines for some but not all responses. it should be the
+    same for all.
+
   # 6-15-2017
   - calibration sound should be configurable
   - Put example sounds on AWS S3
