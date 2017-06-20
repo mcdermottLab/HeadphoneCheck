@@ -8,6 +8,13 @@ HeadphoneCheck.js:
 	-page rendering calls a function which renders individual stimuli on the page
 
 TODO:
+  # 6-15-2017
+  - calibration sound should be configurable
+  - Put example sounds on AWS S3
+  - Sample with replacement
+  - handle ajax error
+  - random with replacement
+
   - fire events on all major state changes (in parenthesis means not required)
     + overall begin/end
     + stim json success/fail
