@@ -1,7 +1,7 @@
 (function(HeadphoneCheck, $, undefined) {
 
   /*** PUBLIC CONFIGURATION VARIABLES ***/
-  HeadphoneCheck.examplesPerPage = 2;
+  HeadphoneCheck.examplesPerPage = 3;
   HeadphoneCheck.debug = true;
   HeadphoneCheck.calibration = true;
 
@@ -12,13 +12,40 @@
   var requirePlayback = true;
   var defaultAudioType = "audio/mpeg";
 
+  var pageNum = 0;
   var totalCorrect = 0;
   var stimMap = [];
+  HeadphoneCheck.stimMap = stimMap;
   var calibration = [];
   var lastPage;
   var st_isPlaying = false;
 
   //PRIVATE FUNCTIONS
+  function storeProgress() {
+    if (typeof(Storage) !== "undefined") {
+      // Code for localStorage/sessionStorage.
+      progressData = {
+        "HeadphoneCheck.examplesPerPage": HeadphoneCheck.examplesPerPage,
+        "HeadphoneCheck.debug": HeadphoneCheck.debug,
+        "HeadphoneCheck.calibration": HeadphoneCheck.calibration,
+        "doShuffleTrials": doShuffleTrials,
+        "validColor": validColor,
+        "warningColor": warningColor,
+        "requirePlayback": requirePlayback,
+        "defaultAudioType": defaultAudioType,
+        "totalCorrect": totalCorrect,
+        "stimMap": stimMap,
+        "calibration": calibration,
+        "lastPage": lastPage,
+        "st_isPlaying": st_isPlaying
+      };
+    }
+    else {
+      // Sorry! No Web Storage support..
+      alert('caching is not supported in this browser');
+    }
+  }
+
   function updateCorrect(stim, response) {
     if (stim.correct == response) {
       totalCorrect++;
@@ -26,8 +53,22 @@
   }
 
   //FUNCTIONS FOR INITIALIZING THE STIMULI AND SHUFFLING THE JSON FILE
+  function randomInt(a, b, n) {
+    // generate n random integers between [a, b]
+    var randIntList = [];
+    var minVal = Math.min(a, b);
+    var maxVal = Math.max(a, b);
+    // var rand = minVal + (maxVal - minVal) * Math.random();
+    for (var i = 0; i < n; i++) {
+      randIntList.push(Math.floor(minVal + (maxVal - minVal + 1) * Math.random())); // +1 to include right endpoint
+    }
+    outVal = n == 1 ? randIntList[0] : randIntList;
+    return outVal;
+  }
+
   function shuffleTrials(data) {
     stimMap = shuffle(data.stim); //shuffles the array
+    console.log(stimMap)
   }
 
   // TODO: fix this, this doesn"t work
@@ -198,6 +239,7 @@
   }
 
   //PUBLIC FUNCTIONS
+  HeadphoneCheck.this = this;
   // Load the experiment configuration from the server
   HeadphoneCheck.loadExamples = function (jsonpath) {
     $.ajax({
@@ -211,7 +253,6 @@
             if (doShuffleTrials) {
               shuffleTrials(data);
             }
-            console.log("test");
             if (HeadphoneCheck.calibration) {
               calibration = data.calibration;
               console.log(calibration);
@@ -221,7 +262,7 @@
     });
   };
 
-  HeadphoneCheck.renderHTMLPage = function(pageNum) {
+  HeadphoneCheck.renderHTMLPage = function(c) {
     //get the stimuli to display on this page
     var curStimuli = [];
     for (i = 0; i < HeadphoneCheck.examplesPerPage; i++) {
@@ -365,9 +406,8 @@
 $(document).ready(function() {
   jsonpath = "headphone_check_stim.json";
   HeadphoneCheck.loadExamples(jsonpath);
-  var pageNum = 0;
   // var continueVal = HeadphoneCheck.renderCalibration();
-  var continueVal = HeadphoneCheck.renderHTMLPage(pageNum);
+  var continueVal = HeadphoneCheck.renderHTMLPage();
   if (continueVal) {
     alert("continuing on!");
   }
