@@ -46,11 +46,13 @@ function shuffle(array, n) {
   }
   else if (n <= 0) {
     n = array.length;
-    throw new Error('Requested samples is not greater than 0. Using full array.');
+    // throw new Error('Requested samples is not greater than 0. Using full array.');
+    console.warn('Requested samples is not greater than 0. Using full array.');
   }
   else if (n > array.length) {
     n = array.length;
-    throw new Error('Requested more samples than there are available; use sampleWithReplacement. Using full array.');
+    // throw new Error('Requested more samples than there are available; use sampleWithReplacement. Using full array.');
+    console.warn('Requested more samples than there are available; use sampleWithReplacement. Using full array.');
   }
   // convert n to 0-index
   // var nInd = n - 1;

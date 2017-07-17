@@ -1,17 +1,19 @@
 (function(HeadphoneCheck, $, undefined) {
 
   /*** PUBLIC CONFIGURATION VARIABLES ***/
-  HeadphoneCheck.totalExamples = 2;
-  HeadphoneCheck.examplesPerPage = 3;
+  HeadphoneCheck.totalExamples = 8;
+  HeadphoneCheck.examplesPerPage = 2;
   HeadphoneCheck.doShuffleTrials = true;
-  HeadphoneCheck.sampleWithReplacement = false;
+  HeadphoneCheck.sampleWithReplacement = true;
   HeadphoneCheck.debug = true;
   HeadphoneCheck.calibration = true;
 
   /*** PRIVATE CONFIGURATION VARIABLES ***/
+  var storageBackend;
+  var storageKey = 'headphoneCheckCache';
   var validColor = "black";
   var warningColor = "red";
-  var requirePlayback = true;
+  var requirePlayback = false;
   var defaultAudioType = "audio/mpeg";
 
   var pageNum = 0;
@@ -23,8 +25,80 @@
   var st_isPlaying = false;
 
   //PRIVATE FUNCTIONS
+  /**
+   * Initialize the headphone check and setup the environment
+   *
+   * @return {undefined}
+   */
+  function setupHeadphoneCheck() {
+    // set the storage backend
+    storageBackend = isStorageAvailable() ? sessionStorage : undefined;
+  }
+
+  /**
+   * Check if storage is available via localStorage and sessionStorage.
+   * NOTE: this can misbehave if the storage is full.
+   *
+   * @return {Boolean} - Indicates if localStorage and sessionStorage are
+   * available.
+   */
+  function isStorageAvailable(){
+    var test = 'test';
+    try {
+      localStorage.setItem(test, test);
+      localStorage.removeItem(test);
+      sessionStorage.setItem(test, test);
+      sessionStorage.removeItem(test);
+      return true;
+    }
+    catch(e) {
+      $(document).trigger('hcStorageUnavailable');
+      return false;
+    }
+  }
+
+  /**
+   * Attempt to load the cached progress state from a JSON string in
+   * local storage.
+   *
+   * @return {bool} - Indicates if restore was successful.
+   */
+  function restoreProgress() {
+    var didRestore = false;
+    if (storageBackend !== undefined && storageKey in storageBackend) {
+      // Code for localStorage/sessionStorage
+      var progressData = JSON.parse(storageBackend.getItem(storageKey));
+      // progressData = {
+      //   "HeadphoneCheck.totalExamples": HeadphoneCheck.totalExamples,
+      //   "HeadphoneCheck.examplesPerPage": HeadphoneCheck.examplesPerPage,
+      //   "HeadphoneCheck.doShuffleTrials": HeadphoneCheck.doShuffleTrials,
+      //   "HeadphoneCheck.sampleWithReplacement": HeadphoneCheck.sampleWithReplacement,
+      //   "HeadphoneCheck.debug": HeadphoneCheck.debug,
+      //   "HeadphoneCheck.calibration": HeadphoneCheck.calibration,
+      //   "validColor": validColor,
+      //   "warningColor": warningColor,
+      //   "requirePlayback": requirePlayback,
+      //   "defaultAudioType": defaultAudioType,
+      //   "totalCorrect": totalCorrect,
+      //   "stimMap": stimMap,
+      //   "calibration": calibration,
+      //   "lastPage": lastPage,
+      //   "st_isPlaying": st_isPlaying
+      // };
+
+      // $(document).trigger('headphoneRestoredProgress');
+      $(document).trigger('hcRestoreProgressSuccess');
+      didRestore = true;
+    }
+    else {
+      // No Web Storage support..
+      $(document).trigger('hcRestoreProgressFail');
+    }
+    return didRestore;
+  }
+
   function storeProgress() {
-    if (typeof(Storage) !== "undefined") {
+    if (storageBackend !== undefined) {
       // Code for localStorage/sessionStorage.
       progressData = {
         "HeadphoneCheck.totalExamples": HeadphoneCheck.totalExamples,
@@ -43,11 +117,12 @@
         "lastPage": lastPage,
         "st_isPlaying": st_isPlaying
       };
-      localStorage.test = JSON.stringify(progressData);
+      storageBackend.setItem(storageKey, JSON.stringify(progressData));
+      $(document).trigger('hcStoreProgressSuccess');
     }
     else {
-      // Sorry! No Web Storage support..
-      alert('caching is not supported in this browser');
+      // No Web Storage support..
+      $(document).trigger('hcStoreProgressFail');
     }
   }
 
@@ -254,49 +329,72 @@
 
   //PUBLIC FUNCTIONS
   HeadphoneCheck.this = this;
-  // Load the experiment configuration from the server
-  HeadphoneCheck.loadExamples = function (jsonpath) {
-    $.ajax({
-        dataType: "json",
-        url: jsonpath,
-        async: false,
-        success: function (data) {
-          jsonData = data;
-          if (HeadphoneCheck.debug) console.log("Got configuration data");
-          if (HeadphoneCheck.doShuffleTrials) {
-            shuffleTrials(data.stim, HeadphoneCheck.totalExamples, HeadphoneCheck.sampleWithReplacement);
-            // shuffleTrials(data, HeadphoneCheck.totalExamples, HeadphoneCheck.sampleWithReplacement);
-            console.log(stimMap);
+
+  /**
+   * Load the experiment configuration, either by restoring cached values
+   * from localStorage or by AJAX fetching from a URL.
+   * @param {jsonPath} title - URL to experiment configuration.
+   * @param {useCache} title - If truthy, will attempt to load cached
+   * values from localStorage. If this succeeds, data from the URL will
+   * not be fetched. If this fails or is falsy, the data will be loaded
+   * from the URL.
+   */
+  HeadphoneCheck.loadStimuli = function (jsonPath, useCache) {
+    setupHeadphoneCheck();
+    // attempt to load from cache
+    console.log('Storage Backend: '+storageBackend);
+    var didLoadCache = false;
+    if (useCache) didLoadCache = restoreProgress();
+
+    // if didn't load from cache, fetch the json file via ajax
+    if (!didLoadCache) {
+      $.ajax({
+          dataType: "json",
+          url: jsonPath,
+          async: false,
+          success: function (data) {
+            $(document).trigger('hcLoadStimuliSuccess', {'data': data});
+            jsonData = data;
+            if (HeadphoneCheck.doShuffleTrials) {
+              shuffleTrials(data.stim, HeadphoneCheck.totalExamples, HeadphoneCheck.sampleWithReplacement);
+              // shuffleTrials(data, HeadphoneCheck.totalExamples, HeadphoneCheck.sampleWithReplacement);
+              console.log(stimMap);
+            }
+            if (HeadphoneCheck.calibration) {
+              calibration = data.calibration;
+              console.log(calibration);
+            }
+            console.log(stimMap.length)
+            lastPage = Math.ceil(stimMap.length / HeadphoneCheck.examplesPerPage); //get last page
+            if (useCache) storeProgress();
+          },
+          error: function (data) {
+            $(document).trigger('hcLoadStimuliFail', {'data': data});
+          },
+          complete: function (data) {
+            $(document).trigger('hcLoadStimuliDone', {'data': data});
           }
-          if (HeadphoneCheck.calibration) {
-            calibration = data.calibration;
-            console.log(calibration);
-          }
-          console.log(stimMap.length)
-          lastPage = Math.ceil(stimMap.length / HeadphoneCheck.examplesPerPage); //get last page
-          storeProgress();
-        }
-    });
+      });
+    }
   };
 
   HeadphoneCheck.renderHTMLPage = function(c) {
     //get the stimuli to display on this page
-    var curStimuli = [];
+    var currentStimuli = [];
     for (i = 0; i < HeadphoneCheck.examplesPerPage; i++) {
       var trialInd = pageNum * HeadphoneCheck.examplesPerPage + i;
       if (trialInd < HeadphoneCheck.totalExamples) {
-        curStimuli.push(stimMap[trialInd]);
+        currentStimuli.push(stimMap[trialInd]);
       }
     }
     console.log('curStim')
-    console.log(curStimuli)
+    console.log(currentStimuli)
 
     $("<div/>", {
       id: "instruct",
       class: "warning",
       html: "When you hit <b>Play</b>, you will hear three sounds separated by silences."
     }).appendTo($("#container-exp"));
-
 
     $("<div/>", {
       class: "warning",
@@ -309,8 +407,9 @@
     }).appendTo($("#container-exp"));
 
     // add in a group for each item in stimulus
-    $.each(curStimuli, function () {
-      renderOneTrialHTML("container-exp", this.id, this.stimFile);
+    $.each(currentStimuli, function (ind, val) {
+      // prefix the stim id with the temporary (page) trial index, allows for duplicate trials
+      renderOneTrialHTML("container-exp", ind+'-src'+val.id, val.stimFile);
     });
 
     if (requirePlayback) {
@@ -335,7 +434,7 @@
       click: function () {
         var canContinue = checkCanContinue();
         for (stimID = 0; stimID < HeadphoneCheck.examplesPerPage; stimID++) {
-          updateCorrect(curStimuli[stimID], $("input[name=radio-resp" + stimID + "]:checked").val());
+          updateCorrect(currentStimuli[stimID], $("input[name=radio-resp" + stimID + "]:checked").val());
         }
         if (pageNum == lastPage - 1) { // TODO: -1 for indexing; make indexing consistent
           teardownHTMLPage();
@@ -426,8 +525,19 @@
 }( window.HeadphoneCheck = window.HeadphoneCheck || {}, jQuery));
 
 $(document).ready(function() {
-  jsonpath = "headphone_check_stim.json";
-  HeadphoneCheck.loadExamples(jsonpath);
+  $(document).on("hcStorageUnavailable", function( event, param1) {
+    alert( event.type );
+  });
+  $(document).on("hcRestoreProgressSuccess", function( event, param1) {
+    alert( event.type );
+  });
+  $(document).on("hcRestoreProgressFail", function( event, param1) {
+    alert( event.type );
+  });
+
+  var useCache = false;
+  var jsonPath = "headphone_check_stim.json";
+  HeadphoneCheck.loadStimuli(jsonPath, useCache);
   // var continueVal = HeadphoneCheck.renderCalibration();
   var continueVal = HeadphoneCheck.renderHTMLPage();
   if (continueVal) {
