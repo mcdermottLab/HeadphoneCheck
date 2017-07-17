@@ -1,12 +1,14 @@
 (function(HeadphoneCheck, $, undefined) {
 
   /*** PUBLIC CONFIGURATION VARIABLES ***/
+  HeadphoneCheck.totalExamples = 2;
   HeadphoneCheck.examplesPerPage = 3;
+  HeadphoneCheck.doShuffleTrials = true;
+  HeadphoneCheck.sampleWithReplacement = false;
   HeadphoneCheck.debug = true;
   HeadphoneCheck.calibration = true;
 
   /*** PRIVATE CONFIGURATION VARIABLES ***/
-  var doShuffleTrials = true;
   var validColor = "black";
   var warningColor = "red";
   var requirePlayback = true;
@@ -15,8 +17,8 @@
   var pageNum = 0;
   var totalCorrect = 0;
   var stimMap = [];
-  HeadphoneCheck.stimMap = stimMap;
   var calibration = [];
+  var jsonData;
   var lastPage;
   var st_isPlaying = false;
 
@@ -25,10 +27,12 @@
     if (typeof(Storage) !== "undefined") {
       // Code for localStorage/sessionStorage.
       progressData = {
+        "HeadphoneCheck.totalExamples": HeadphoneCheck.totalExamples,
         "HeadphoneCheck.examplesPerPage": HeadphoneCheck.examplesPerPage,
+        "HeadphoneCheck.doShuffleTrials": HeadphoneCheck.doShuffleTrials,
+        "HeadphoneCheck.sampleWithReplacement": HeadphoneCheck.sampleWithReplacement,
         "HeadphoneCheck.debug": HeadphoneCheck.debug,
         "HeadphoneCheck.calibration": HeadphoneCheck.calibration,
-        "doShuffleTrials": doShuffleTrials,
         "validColor": validColor,
         "warningColor": warningColor,
         "requirePlayback": requirePlayback,
@@ -39,6 +43,7 @@
         "lastPage": lastPage,
         "st_isPlaying": st_isPlaying
       };
+      localStorage.test = JSON.stringify(progressData);
     }
     else {
       // Sorry! No Web Storage support..
@@ -53,22 +58,29 @@
   }
 
   //FUNCTIONS FOR INITIALIZING THE STIMULI AND SHUFFLING THE JSON FILE
-  function randomInt(a, b, n) {
-    // generate n random integers between [a, b]
-    var randIntList = [];
-    var minVal = Math.min(a, b);
-    var maxVal = Math.max(a, b);
-    // var rand = minVal + (maxVal - minVal) * Math.random();
-    for (var i = 0; i < n; i++) {
-      randIntList.push(Math.floor(minVal + (maxVal - minVal + 1) * Math.random())); // +1 to include right endpoint
-    }
-    outVal = n == 1 ? randIntList[0] : randIntList;
-    return outVal;
-  }
+  // function randomInt(a, b, n) {
+  //   // generate n random integers between [a, b]
+  //   var randIntList = [];
+  //   var minVal = Math.min(a, b);
+  //   var maxVal = Math.max(a, b);
+  //   // var rand = minVal + (maxVal - minVal) * Math.random();
+  //   for (var i = 0; i < n; i++) {
+  //     randIntList.push(Math.floor(minVal + (maxVal - minVal + 1) * Math.random())); // +1 to include right endpoint
+  //   }
+  //   outVal = n == 1 ? randIntList[0] : randIntList;
+  //   return outVal;
+  // }
 
-  function shuffleTrials(data) {
-    stimMap = shuffle(data.stim); //shuffles the array
-    console.log(stimMap)
+  // function shuffleTrials(data) {
+  //   stimMap = shuffle(data.stim); //shuffles the array
+  // }
+
+  function shuffleTrials(trialArray, n, withReplacement) {
+    // stimMap = shuffle(trialArray); //shuffles the array
+    console.log('n: ' + n +' w/R: ' + withReplacement)
+    var shuffledTrials = withReplacement ? sampleWithReplacement(trialArray, n) : shuffle(trialArray, n);
+    stimMap = shuffledTrials;
+    // return shuffledTrials;
   }
 
   // TODO: fix this, this doesn"t work
@@ -149,28 +161,30 @@
     $(uncheckedTrials).css("border", "5px solid " + warningColor);
   }
 
-  function shuffle(array) {
-    var currentIndex = array.length, temporaryValue, randomIndex ;
+  // function shuffle(array) {
+  //   var currentIndex = array.length, temporaryValue, randomIndex;
 
-    // While there remain elements to shuffle...
-    while (0 !== currentIndex) {
-      // Pick a remaining element...
-      randomIndex = Math.floor(Math.random() * currentIndex);
-      currentIndex -= 1;
+  //   // While there remain elements to shuffle...
+  //   while (0 !== currentIndex) {
+  //     // Pick a remaining element...
+  //     randomIndex = Math.floor(Math.random() * currentIndex);
+  //     currentIndex -= 1;
 
-      // And swap it with the current element.
-      temporaryValue = array[currentIndex];
-      array[currentIndex] = array[randomIndex];
-      array[randomIndex] = temporaryValue;
-    }
-    return array;
-  }
+  //     // And swap it with the current element.
+  //     temporaryValue = array[currentIndex];
+  //     array[currentIndex] = array[randomIndex];
+  //     array[randomIndex] = temporaryValue;
+  //   }
+  //   return array;
+  // }
 
   // renderHTML takes in the stimulus ID and the stimulus file and creates a div
   // element with everything needed to play and respond to this sound
   function renderOneTrialHTML(stimDiv, stimID, stimFile) {
+    console.log('--->' +' '+ stimDiv + stimID + ', ' + stimFile)
+    if (stimFile === undefined) return;
     var divID = "stim" + stimID;
-    console.log(divID);
+    // console.log(divID);
     $("<div/>", {id: divID, class: "trialDiv"}).appendTo(("#" + stimDiv));
 
     //add in the audio source
@@ -247,17 +261,20 @@
         url: jsonpath,
         async: false,
         success: function (data) {
-            if (HeadphoneCheck.debug) {
-                console.log("Got configuration data");
-            }
-            if (doShuffleTrials) {
-              shuffleTrials(data);
-            }
-            if (HeadphoneCheck.calibration) {
-              calibration = data.calibration;
-              console.log(calibration);
-            }
-            lastPage = Math.ceil(stimMap.length / HeadphoneCheck.examplesPerPage); //get last page
+          jsonData = data;
+          if (HeadphoneCheck.debug) console.log("Got configuration data");
+          if (HeadphoneCheck.doShuffleTrials) {
+            shuffleTrials(data.stim, HeadphoneCheck.totalExamples, HeadphoneCheck.sampleWithReplacement);
+            // shuffleTrials(data, HeadphoneCheck.totalExamples, HeadphoneCheck.sampleWithReplacement);
+            console.log(stimMap);
+          }
+          if (HeadphoneCheck.calibration) {
+            calibration = data.calibration;
+            console.log(calibration);
+          }
+          console.log(stimMap.length)
+          lastPage = Math.ceil(stimMap.length / HeadphoneCheck.examplesPerPage); //get last page
+          storeProgress();
         }
     });
   };
@@ -266,8 +283,13 @@
     //get the stimuli to display on this page
     var curStimuli = [];
     for (i = 0; i < HeadphoneCheck.examplesPerPage; i++) {
-      curStimuli.push(stimMap[pageNum * HeadphoneCheck.examplesPerPage + i]);
+      var trialInd = pageNum * HeadphoneCheck.examplesPerPage + i;
+      if (trialInd < HeadphoneCheck.totalExamples) {
+        curStimuli.push(stimMap[trialInd]);
+      }
     }
+    console.log('curStim')
+    console.log(curStimuli)
 
     $("<div/>", {
       id: "instruct",

@@ -40,9 +40,23 @@ function sampleWithReplacement(arr, n) {
 
 // }
 
-function shuffle(array) {
-  var currentIndex = array.length, temporaryValue, randomIndex;
+function shuffle(array, n) {
+  if (n === undefined) {
+    n = array.length;
+  }
+  else if (n <= 0) {
+    n = array.length;
+    throw new Error('Requested samples is not greater than 0. Using full array.');
+  }
+  else if (n > array.length) {
+    n = array.length;
+    throw new Error('Requested more samples than there are available; use sampleWithReplacement. Using full array.');
+  }
+  // convert n to 0-index
+  // var nInd = n - 1;
+  var nInd = n;
 
+  var currentIndex = array.length, temporaryValue, randomIndex;
   // While there remain elements to shuffle...
   while (0 !== currentIndex) {
     // Pick a remaining element...
@@ -54,28 +68,30 @@ function shuffle(array) {
     array[currentIndex] = array[randomIndex];
     array[randomIndex] = temporaryValue;
   }
-  return array;
+  console.log(nInd)
+  console.log(array)
+  return array.slice(0, nInd);
 }
 
-// test
+// // test
 
-var test = ["a", "b", "c"];
-var verify = sampleWithReplacement(test, 10000);
+// var test = ["a", "b", "c"];
+// var verify = sampleWithReplacement(test, 10000);
 
-function count(arr, el) {
-  var c = 0;
-  for(var i = 0; i < arr.length; ++i){
-    if(arr[i] == el)
-      c++;
-  }
-  return c;
-}
+// function count(arr, el) {
+//   var c = 0;
+//   for(var i = 0; i < arr.length; ++i){
+//     if(arr[i] == el)
+//       c++;
+//   }
+//   return c;
+// }
 
-console.log("here");
-console.log(test);
+// console.log("here");
+// console.log(test);
 
-for(var i = 0; i < test.length; i++) {
-  console.log(count(verify, test[i]));
-}
+// for(var i = 0; i < test.length; i++) {
+//   console.log(count(verify, test[i]));
+// }
 
 
