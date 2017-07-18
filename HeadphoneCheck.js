@@ -2,26 +2,34 @@
 
   /*** PUBLIC CONFIGURATION VARIABLES ***/
   HeadphoneCheck.totalExamples = 8;
-  HeadphoneCheck.examplesPerPage = 2;
+  HeadphoneCheck.examplesPerPage = 3;
   HeadphoneCheck.doShuffleTrials = true;
   HeadphoneCheck.sampleWithReplacement = true;
   HeadphoneCheck.debug = true;
-  HeadphoneCheck.calibration = true;
+  HeadphoneCheck.doCalibration = true;
 
   /*** PRIVATE CONFIGURATION VARIABLES ***/
   var storageBackend;
   var storageKey = 'headphoneCheckCache';
   var validColor = "black";
   var warningColor = "red";
-  var requirePlayback = false;
+  var requirePlayback = true;
   var defaultAudioType = "audio/mpeg";
 
-  var pageNum = 0;
-  var totalCorrect = 0;
-  var stimMap = [];
-  var calibration = [];
-  var jsonData;
-  var lastPage;
+  // var pageNum = 0;
+  // var totalCorrect = 0;
+  // var stimMap = [];
+  // var calibration = [];
+  // var jsonData;
+  // var lastPage;
+
+  var headphoneCheckData = {pageNum: 0,
+                            totalCorrect: 0,
+                            stimMap: [],
+                            calibration: [],
+                            jsonData: undefined,
+                            lastPage: undefined,
+                           };
   var st_isPlaying = false;
 
   //PRIVATE FUNCTIONS
@@ -74,15 +82,15 @@
       //   "HeadphoneCheck.doShuffleTrials": HeadphoneCheck.doShuffleTrials,
       //   "HeadphoneCheck.sampleWithReplacement": HeadphoneCheck.sampleWithReplacement,
       //   "HeadphoneCheck.debug": HeadphoneCheck.debug,
-      //   "HeadphoneCheck.calibration": HeadphoneCheck.calibration,
+      //   "HeadphoneCheck.doCalibration": HeadphoneCheck.doCalibration,
       //   "validColor": validColor,
       //   "warningColor": warningColor,
       //   "requirePlayback": requirePlayback,
       //   "defaultAudioType": defaultAudioType,
-      //   "totalCorrect": totalCorrect,
-      //   "stimMap": stimMap,
-      //   "calibration": calibration,
-      //   "lastPage": lastPage,
+      //   "headphoneCheckData.totalCorrect": headphoneCheckData.totalCorrect,
+      //   "headphoneCheckData.stimMap": headphoneCheckData.stimMap,
+      //   "headphoneCheckData.calibration": headphoneCheckData.calibration,
+      //   "headphoneCheckData.lastPage": headphoneCheckData.lastPage,
       //   "st_isPlaying": st_isPlaying
       // };
 
@@ -106,15 +114,15 @@
         "HeadphoneCheck.doShuffleTrials": HeadphoneCheck.doShuffleTrials,
         "HeadphoneCheck.sampleWithReplacement": HeadphoneCheck.sampleWithReplacement,
         "HeadphoneCheck.debug": HeadphoneCheck.debug,
-        "HeadphoneCheck.calibration": HeadphoneCheck.calibration,
+        "HeadphoneCheck.doCalibration": HeadphoneCheck.doCalibration,
         "validColor": validColor,
         "warningColor": warningColor,
         "requirePlayback": requirePlayback,
         "defaultAudioType": defaultAudioType,
-        "totalCorrect": totalCorrect,
-        "stimMap": stimMap,
-        "calibration": calibration,
-        "lastPage": lastPage,
+        "headphoneCheckData.totalCorrect": headphoneCheckData.totalCorrect,
+        "headphoneCheckData.stimMap": headphoneCheckData.stimMap,
+        "headphoneCheckData.calibration": headphoneCheckData.calibration,
+        "headphoneCheckData.lastPage": headphoneCheckData.lastPage,
         "st_isPlaying": st_isPlaying
       };
       storageBackend.setItem(storageKey, JSON.stringify(progressData));
@@ -128,7 +136,7 @@
 
   function updateCorrect(stim, response) {
     if (stim.correct == response) {
-      totalCorrect++;
+      headphoneCheckData.totalCorrect++;
     }
   }
 
@@ -147,22 +155,22 @@
   // }
 
   // function shuffleTrials(data) {
-  //   stimMap = shuffle(data.stim); //shuffles the array
+  //   headphoneCheckData.stimMap = shuffle(data.stim); //shuffles the array
   // }
 
   function shuffleTrials(trialArray, n, withReplacement) {
-    // stimMap = shuffle(trialArray); //shuffles the array
+    // headphoneCheckData.stimMap = shuffle(trialArray); //shuffles the array
     console.log('n: ' + n +' w/R: ' + withReplacement)
     var shuffledTrials = withReplacement ? sampleWithReplacement(trialArray, n) : shuffle(trialArray, n);
-    stimMap = shuffledTrials;
+    headphoneCheckData.stimMap = shuffledTrials;
     // return shuffledTrials;
   }
 
   // TODO: fix this, this doesn"t work
   function parseAudioType(stimID) {
     console.log("TYPE: " +stimID);
-    console.log(stimMap);
-    var typeStr = stimMap[stimID];
+    console.log(headphoneCheckData.stimMap);
+    var typeStr = headphoneCheckData.stimMap[stimID];
     console.log("TYPE: "+typeStr);
     if (typeStr === undefined) {
       typeStr = defaultAudioType;
@@ -172,10 +180,11 @@
   }
 
   function checkPassFail(correctThreshold) {
-    if (totalCorrect >= correctThreshold) {
+    if (headphoneCheckData.totalCorrect >= correctThreshold) {
       return true;
     }
     else { return false; }
+    // return headphoneCheckData.totalCorrect >= correctThreshold
   }
 
   function playStim(stimID) {
@@ -340,7 +349,7 @@
    * from the URL.
    */
   HeadphoneCheck.loadStimuli = function (jsonPath, useCache) {
-    setupHeadphoneCheck();
+    setupHeadphoneCheck(); // TODO: fix this
     // attempt to load from cache
     console.log('Storage Backend: '+storageBackend);
     var didLoadCache = false;
@@ -354,18 +363,18 @@
           async: false,
           success: function (data) {
             $(document).trigger('hcLoadStimuliSuccess', {'data': data});
-            jsonData = data;
+            headphoneCheckData.jsonData = data;
             if (HeadphoneCheck.doShuffleTrials) {
               shuffleTrials(data.stim, HeadphoneCheck.totalExamples, HeadphoneCheck.sampleWithReplacement);
               // shuffleTrials(data, HeadphoneCheck.totalExamples, HeadphoneCheck.sampleWithReplacement);
-              console.log(stimMap);
+              console.log(headphoneCheckData.stimMap);
             }
-            if (HeadphoneCheck.calibration) {
-              calibration = data.calibration;
-              console.log(calibration);
+            if (HeadphoneCheck.doCalibration) {
+              headphoneCheckData.calibration = data.calibration;
+              console.log(headphoneCheckData.calibration);
             }
-            console.log(stimMap.length)
-            lastPage = Math.ceil(stimMap.length / HeadphoneCheck.examplesPerPage); //get last page
+            console.log(headphoneCheckData.stimMap.length)
+            headphoneCheckData.lastPage = Math.ceil(headphoneCheckData.stimMap.length / HeadphoneCheck.examplesPerPage); //get last page
             if (useCache) storeProgress();
           },
           error: function (data) {
@@ -380,11 +389,12 @@
 
   HeadphoneCheck.renderHTMLPage = function(c) {
     //get the stimuli to display on this page
+    console.log(headphoneCheckData)
     var currentStimuli = [];
     for (i = 0; i < HeadphoneCheck.examplesPerPage; i++) {
-      var trialInd = pageNum * HeadphoneCheck.examplesPerPage + i;
+      var trialInd = headphoneCheckData.pageNum * HeadphoneCheck.examplesPerPage + i;
       if (trialInd < HeadphoneCheck.totalExamples) {
-        currentStimuli.push(stimMap[trialInd]);
+        currentStimuli.push(headphoneCheckData.stimMap[trialInd]);
       }
     }
     console.log('curStim')
@@ -436,15 +446,15 @@
         for (stimID = 0; stimID < HeadphoneCheck.examplesPerPage; stimID++) {
           updateCorrect(currentStimuli[stimID], $("input[name=radio-resp" + stimID + "]:checked").val());
         }
-        if (pageNum == lastPage - 1) { // TODO: -1 for indexing; make indexing consistent
+        if (headphoneCheckData.pageNum == headphoneCheckData.lastPage - 1) { // TODO: -1 for indexing; make indexing consistent
           teardownHTMLPage();
           checkPassFail();
           alert("done with headphone check");
         }
         else if (canContinue) { // Advance the page
           teardownHTMLPage();
-          pageNum++;
-          HeadphoneCheck.renderHTMLPage(pageNum);
+          headphoneCheckData.pageNum++;
+          HeadphoneCheck.renderHTMLPage(headphoneCheckData.pageNum);
         }
         else { // need responses, don"t advance page, show warnings
           renderResponseWarnings();
@@ -472,13 +482,13 @@
 
     $("<div/>", {
       class: "warning",
-      text: "Press the button, then turn up the volume on your computer until the calibration noise is at a loud but comfortable level."
+      text: "Press the button, then turn up the volume on your computer until the headphoneCheckData.calibration noise is at a loud but comfortable level."
     }).appendTo($("#container-exp"));
 
     $("<div/>", {
-      id: "calibration",
+      id: "headphoneCheckData.calibration",
       class: "calibrationDiv",
-      text: "Play the calibration sound as many times as you like."
+      text: "Play the headphoneCheckData.calibration sound as many times as you like."
     }).appendTo($("#container-exp"));
 
     //add in the audio source
@@ -486,8 +496,8 @@
         id: "audioCalibration",
         type: "audio/mpeg", // TODO: Factor this out, should be user defined
         // type: parseAudioType(stimID),
-        src: calibration.stimFile
-      }).appendTo($("#calibration"));
+        src: headphoneCheckData.calibration.stimFile
+      }).appendTo($("#headphoneCheckData.calibration"));
 
     //add in the button for playing the sound
     $("<button/>", {
@@ -500,11 +510,11 @@
         $("#continueCalibration").prop('disabled',false);
       },
       text: "Play"
-    }).appendTo($("#calibration"));
+    }).appendTo($("#headphoneCheckData.calibration"));
 
     $("<div/>", {
       class: "warning",
-      html: "Press <b>Continue</b> when level calibration is complete."
+      html: "Press <b>Continue</b> when level headphoneCheckData.calibration is complete."
     }).appendTo($("#container-exp"));
 
     // Add button to continue
@@ -534,14 +544,14 @@ $(document).ready(function() {
   $(document).on("hcRestoreProgressFail", function( event, param1) {
     alert( event.type );
   });
+  // $(document).on("hcLoadStimuliDone", function( event, param1) {
+  //   alert( event.type );
+  // });
 
   var useCache = false;
   var jsonPath = "headphone_check_stim.json";
   HeadphoneCheck.loadStimuli(jsonPath, useCache);
-  // var continueVal = HeadphoneCheck.renderCalibration();
-  var continueVal = HeadphoneCheck.renderHTMLPage();
-  if (continueVal) {
-    alert("continuing on!");
-  }
+  // HeadphoneCheck.renderCalibration();
+  HeadphoneCheck.renderHTMLPage();
 });
 

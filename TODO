@@ -18,6 +18,8 @@ TODO:
 
   - API
 
+  -ajax fetch to async
+
   # 6-15-2017
   - calibration sound should be configurable
   - Put example sounds on AWS S3
@@ -42,7 +44,7 @@ x  - random with replacement
   - check playback counters if `requirePlayback` is false
   - support for multiple audio sources
   - fix audio source type
-  - json schema -> what if IDs aren't unique?
+  x - json schema -> what if IDs aren't unique?: shouldn't matter, each trials has a unique index prefix
   - render finished page?
 
 
