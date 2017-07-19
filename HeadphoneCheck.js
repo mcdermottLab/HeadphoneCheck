@@ -142,7 +142,7 @@
 
   //FUNCTIONS FOR INITIALIZING THE STIMULI AND SHUFFLING THE JSON FILE
   // function randomInt(a, b, n) {
-  //   // generate n random integers between [a, b]
+  //   // generate n random integers between [a, g]
   //   var randIntList = [];
   //   var minVal = Math.min(a, b);
   //   var maxVal = Math.max(a, b);
@@ -199,7 +199,11 @@
       }
     });
 
-    $('#b' + stimID).css('border', 'none');
+    // clear warnings
+    var trialBackgroundColor = $('#playButtonBorder-' + stimID).parent().css('background-color');
+    $('#playButtonBorder-' + stimID).css('border-color', trialBackgroundColor);
+
+    // play and set state
     $("#" + stimFile).get(0).play();
     st_isPlaying = true;
     // hack to disable responding during playback
@@ -217,6 +221,7 @@
 
   function disableClick(buttonID) {
     $("#" + buttonID).prop("disabled", true);
+    // console.log('DISABLE->'+buttonID)
   }
 
   function checkCanContinue() {
@@ -285,19 +290,36 @@
       }).appendTo($("#" + divID));
     }
 
-    //add in the button for playing the sound
-    $("<button/>", {
-      id: "b" + stimID,
-      disabled: false,
-      click: function () {
-        if (!st_isPlaying){
-          playStim(stimID);
-          disableClick(this.id);
-        }
-        else {}
-      },
-      text: "Play"
-    }).appendTo($("#" + divID));
+    // //add in the button for playing the sound
+    // $("<button/>", {
+    //   id: "playButton-" + stimID,
+    //   disabled: false,
+    //   click: function () {
+    //     if (!st_isPlaying){
+    //       playStim(stimID);
+    //       disableClick(this.id);
+    //     }
+    //   },
+    //   text: "Play"
+    // });
+
+    var trialBackgroundColor = $('#'+divID).css('background-color');
+    $("<div/>", {
+      id: "playButtonBorder-" + stimID,
+    }).css({"border": "3px solid " + trialBackgroundColor, "display": "inline-block"})
+    .append(
+      $("<button/>", {
+        id: "playButton-" + stimID,
+        disabled: false,
+        click: function () {
+          if (!st_isPlaying){
+            playStim(stimID);
+            disableClick(this.id);
+          }
+        },
+        text: "Play"
+      }))
+    .appendTo($("#" + divID));
 
     //add in the radio buttons for selecting which sound was softest
     $("<div/>", {
@@ -430,7 +452,9 @@
         console.log($(parentPlayButton).prop('disabled'))
         // if the play button isn't disabled, it hasn't been played, so show a warning
         if (!$(parentPlayButton).prop('disabled')) {
-          $(parentPlayButton).css('border', '3px solid red');
+          // debugger;
+          // $(parentPlayButton).css('border', '3px solid ' + warningColor);
+          $(parentPlayButton).parent().css('border', '3px solid ' + warningColor);
           event.preventDefault();
         }
       });
@@ -439,7 +463,6 @@
     // Add button to continue
     $("<button/>", {
       class: "warning",
-      // type: "button",
       text: "Continue",
       click: function () {
         var canContinue = checkCanContinue();
