@@ -13,3 +13,4 @@ All events triggered by the headphone check code are prefixed by "hc" and fired 
 + hcRestoreProgressSuccess
 + hcRestoreProgressFail
 + hcLoadStimuliSuccess
++ hcInitialized

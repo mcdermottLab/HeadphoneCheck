@@ -1,13 +1,13 @@
 (function(HeadphoneCheck, $, undefined) {
 
   /*** PUBLIC CONFIGURATION VARIABLES ***/
-  HeadphoneCheck.totalTrials = 3;
+  HeadphoneCheck.totalTrials = 1;
   HeadphoneCheck.trialsPerPage = 1;
   HeadphoneCheck.correctThreshold = 2;
   HeadphoneCheck.useSequential = true;
   HeadphoneCheck.doShuffleTrials = true;
   HeadphoneCheck.sampleWithReplacement = true;
-  HeadphoneCheck.doCalibration = true;
+  HeadphoneCheck.doCalibration = false;
   HeadphoneCheck.debug = true;
 
   /*** PRIVATE CONFIGURATION VARIABLES ***/
@@ -32,6 +32,39 @@
   /*** PUBLIC FUNCTIONS ***/
   HeadphoneCheck.runHeadphoneCheck = function(jsonPath, useCache) {
     setupHeadphoneCheck();
+
+    $(document).on('hcCalibrationStart', function(event, data) {
+      console.log('calib start event')
+      HeadphoneCheck.renderHeadphoneCheckCalibration();
+    });
+    $(document).on('hcCalibrationEnd', function(event, data) {
+      console.log('calib end event')
+      $(document).trigger('hcHeadphoneCheckStart');
+    });
+
+    $(document).on('hcHeadphoneCheckStart', function(event, data) {
+      console.log('HC start event')
+      HeadphoneCheck.renderHeadphoneCheckPage();
+    });
+    $(document).on('hcHeadphoneCheckEnd', function(event, data) {
+      console.log('HC end event')
+      var results = data.data;
+      var didPass = data.didPass;
+
+      alert('did pass headphone check: ' + didPass);
+
+      if (didPass) {
+        $('<div/>', {
+          html: 'Headphone check passed. Continue with task.<br/>totalCorrect: ' + getTotalCorrect(results.trialScoreList)
+        }).appendTo($('body'));
+      }
+      else {
+        $('<div/>', {
+          html: 'Headphone check failed. Do something else.<br/>totalCorrect: ' + getTotalCorrect(results.trialScoreList)
+        }).appendTo($('body'));
+      }
+
+    });
     HeadphoneCheck.loadStimuli(jsonPath, useCache);
   };
 
@@ -62,21 +95,18 @@
             headphoneCheckData.jsonData = data;
             if (HeadphoneCheck.doShuffleTrials) {
               shuffleTrials(data.stimuli, HeadphoneCheck.totalTrials, HeadphoneCheck.sampleWithReplacement);
-              console.log(headphoneCheckData.stimDataList);
             }
             if (HeadphoneCheck.doCalibration) {
               headphoneCheckData.calibration = data.calibration;
-              console.log(headphoneCheckData.calibration);
             }
-            console.log(headphoneCheckData.stimDataList.length)
-            headphoneCheckData.lastPage = Math.ceil(headphoneCheckData.stimDataList.length / HeadphoneCheck.trialsPerPage); //get last page
+            headphoneCheckData.lastPage = Math.ceil(headphoneCheckData.stimDataList.length / HeadphoneCheck.trialsPerPage);
             if (useCache) storeProgress();
 
             if (HeadphoneCheck.doCalibration) {
-              HeadphoneCheck.renderHeadphoneCheckCalibration();
+              $(document).trigger('hcCalibrationStart');
             }
             else {
-              HeadphoneCheck.renderHeadphoneCheckPage();
+              $(document).trigger('hcHeadphoneCheckStart');
             }
           },
           error: function (data) {
@@ -90,6 +120,8 @@
   };
 
   HeadphoneCheck.renderHeadphoneCheckPage = function() {
+    // $(document).trigger('hcHeadphoneCheckStart');
+
     // render boilerplate instruction text
     $('<div/>', {
       class: 'hc-instruction',
@@ -150,8 +182,8 @@
         if (headphoneCheckData.pageNum == headphoneCheckData.lastPage - 1) { // TODO: -1 for indexing; make indexing consistent
           teardownHTMLPage();
           var didPass = checkPassFail(HeadphoneCheck.correctThreshold);
-          console.log(headphoneCheckData)
-          alert('did pass headphone check: '+didPass);
+          // console.log(headphoneCheckData)
+          $(document).trigger('hcHeadphoneCheckEnd', {'didPass': didPass, 'data': headphoneCheckData});
         }
         else if (canContinue) { // Advance the page
           teardownHTMLPage();
@@ -166,6 +198,8 @@
   };
 
   HeadphoneCheck.renderHeadphoneCheckCalibration = function() {
+    // $(document).trigger('hcCalibrationStart');
+
     // render boilerplate instruction text
     $('<div/>', {
       class: 'hc-calibration-instruction',
@@ -205,7 +239,6 @@
         if (!st_isPlaying){
           playCalibration('hc-calibration-audio');
         }
-        $('#hc-calibration-continue-button').prop('disabled', false);
       },
       text: 'Play',
     }).css('display', 'block').appendTo($('#hc-calibration-div'));
@@ -223,7 +256,8 @@
       text: 'Continue',
       click: function () {
         teardownHTMLPage();
-        HeadphoneCheck.renderHeadphoneCheckPage();
+        $(document).trigger('hcCalibrationEnd');
+        // HeadphoneCheck.renderHeadphoneCheckPage();
       }
     }).appendTo($('#hc-container'));
   };
@@ -237,6 +271,7 @@
   function setupHeadphoneCheck() {
     // set the storage backend
     storageBackend = isStorageAvailable() ? sessionStorage : undefined;
+    $(document).trigger('hcInitialized');
   }
 
   /**
@@ -437,6 +472,7 @@
     $('#' + calibrationFile).on('ended', function() {
       // reset playback state
       st_isPlaying = false;
+      $('#hc-calibration-continue-button').prop('disabled', false);
     });
     $('#' + calibrationFile).get(0).play();
     st_isPlaying = true;
