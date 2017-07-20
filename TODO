@@ -1,11 +1,11 @@
-README/TODO
+TODO
 
 HeadphoneCheck.js:
-	- two exposed variables: number of examples that you want to show up on a given page, and debug flag
-	- two exposed functions: one for loading stimuli from a json file, one for rendering an HTML page
-	- call the load examples function and then render the first page of the headphone check (with #examplesPerPage on this page)
+  - two exposed variables: number of examples that you want to show up on a given page, and debug flag
+  - two exposed functions: one for loading stimuli from a json file, one for rendering an HTML page
+  - call the load examples function and then render the first page of the headphone check (with #examplesPerPage on this page)
 
-	-page rendering calls a function which renders individual stimuli on the page
+  -page rendering calls a function which renders individual stimuli on the page
 
 TODO:
   - when browser is thin (say half of screen size on laptop), the response text
@@ -17,6 +17,14 @@ x  - shouldn't allow playing the next sound before responding to the current one
 x  - How to check correctness?: naively
 
   - API
+
+  - add events
+
+  - document
+
+  -readme
+
+x -calibration
 
 x  -ajax fetch to async
 

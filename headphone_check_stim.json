@@ -1,5 +1,5 @@
 {
-  "stim":[
+  "stimuli":[
            {"id":1, "src": "http://mcdermottlab.mit.edu/mturk_stimuli/audio_calibration/antiphase_HC_ISO.wav", "correct":"1"},
            {"id":2, "src": "http://mcdermottlab.mit.edu/mturk_stimuli/audio_calibration/antiphase_HC_IOS.wav", "correct":"2" },
            {"id":3, "src": "http://mcdermottlab.mit.edu/mturk_stimuli/audio_calibration/antiphase_HC_SOI.wav", "correct":"3"},
