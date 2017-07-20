@@ -2,7 +2,8 @@
 
   /*** PUBLIC CONFIGURATION VARIABLES ***/
   HeadphoneCheck.totalExamples = 8;
-  HeadphoneCheck.examplesPerPage = 3;
+  HeadphoneCheck.examplesPerPage = 2;
+  HeadphoneCheck.useSequential = true;
   HeadphoneCheck.doShuffleTrials = true;
   HeadphoneCheck.sampleWithReplacement = true;
   HeadphoneCheck.debug = true;
@@ -16,16 +17,10 @@
   var requirePlayback = true;
   var defaultAudioType = "audio/mpeg";
 
-  // var pageNum = 0;
-  // var totalCorrect = 0;
-  // var stimMap = [];
-  // var calibration = [];
-  // var jsonData;
-  // var lastPage;
-
   var headphoneCheckData = {pageNum: 0,
                             totalCorrect: 0,
                             stimMap: [],
+                            trialScore: [],
                             calibration: [],
                             jsonData: undefined,
                             lastPage: undefined,
@@ -75,26 +70,7 @@
     var didRestore = false;
     if (storageBackend !== undefined && storageKey in storageBackend) {
       // Code for localStorage/sessionStorage
-      var progressData = JSON.parse(storageBackend.getItem(storageKey));
-      // progressData = {
-      //   "HeadphoneCheck.totalExamples": HeadphoneCheck.totalExamples,
-      //   "HeadphoneCheck.examplesPerPage": HeadphoneCheck.examplesPerPage,
-      //   "HeadphoneCheck.doShuffleTrials": HeadphoneCheck.doShuffleTrials,
-      //   "HeadphoneCheck.sampleWithReplacement": HeadphoneCheck.sampleWithReplacement,
-      //   "HeadphoneCheck.debug": HeadphoneCheck.debug,
-      //   "HeadphoneCheck.doCalibration": HeadphoneCheck.doCalibration,
-      //   "validColor": validColor,
-      //   "warningColor": warningColor,
-      //   "requirePlayback": requirePlayback,
-      //   "defaultAudioType": defaultAudioType,
-      //   "headphoneCheckData.totalCorrect": headphoneCheckData.totalCorrect,
-      //   "headphoneCheckData.stimMap": headphoneCheckData.stimMap,
-      //   "headphoneCheckData.calibration": headphoneCheckData.calibration,
-      //   "headphoneCheckData.lastPage": headphoneCheckData.lastPage,
-      //   "st_isPlaying": st_isPlaying
-      // };
-
-      // $(document).trigger('headphoneRestoredProgress');
+      headphoneCheckData = JSON.parse(storageBackend.getItem(storageKey));
       $(document).trigger('hcRestoreProgressSuccess');
       didRestore = true;
     }
@@ -107,25 +83,7 @@
 
   function storeProgress() {
     if (storageBackend !== undefined) {
-      // Code for localStorage/sessionStorage.
-      progressData = {
-        "HeadphoneCheck.totalExamples": HeadphoneCheck.totalExamples,
-        "HeadphoneCheck.examplesPerPage": HeadphoneCheck.examplesPerPage,
-        "HeadphoneCheck.doShuffleTrials": HeadphoneCheck.doShuffleTrials,
-        "HeadphoneCheck.sampleWithReplacement": HeadphoneCheck.sampleWithReplacement,
-        "HeadphoneCheck.debug": HeadphoneCheck.debug,
-        "HeadphoneCheck.doCalibration": HeadphoneCheck.doCalibration,
-        "validColor": validColor,
-        "warningColor": warningColor,
-        "requirePlayback": requirePlayback,
-        "defaultAudioType": defaultAudioType,
-        "headphoneCheckData.totalCorrect": headphoneCheckData.totalCorrect,
-        "headphoneCheckData.stimMap": headphoneCheckData.stimMap,
-        "headphoneCheckData.calibration": headphoneCheckData.calibration,
-        "headphoneCheckData.lastPage": headphoneCheckData.lastPage,
-        "st_isPlaying": st_isPlaying
-      };
-      storageBackend.setItem(storageKey, JSON.stringify(progressData));
+      storageBackend.setItem(storageKey, JSON.stringify(headphoneCheckData));
       $(document).trigger('hcStoreProgressSuccess');
     }
     else {
@@ -134,10 +92,10 @@
     }
   }
 
-  function updateCorrect(stim, response) {
-    if (stim.correct == response) {
-      headphoneCheckData.totalCorrect++;
-    }
+  function scoreTrial(trialInd, stimData, response) {
+    var score = stimData.correct == response ? 1 : 0;
+    headphoneCheckData.trialScore[trialInd] = score;
+    headphoneCheckData.totalCorrect += score;
   }
 
   //FUNCTIONS FOR INITIALIZING THE STIMULI AND SHUFFLING THE JSON FILE
@@ -163,6 +121,12 @@
     console.log('n: ' + n +' w/R: ' + withReplacement)
     var shuffledTrials = withReplacement ? sampleWithReplacement(trialArray, n) : shuffle(trialArray, n);
     headphoneCheckData.stimMap = shuffledTrials;
+    headphoneCheckData.stimID = headphoneCheckData.stimMap.map(function (val, ind) {
+      // prefix the stim id with the temporary (page) trial index, allows for duplicate trials
+       return ind+'-src'+val.id;
+    });
+    headphoneCheckData.trialScore = Array(headphoneCheckData.stimMap.length); // TODO: is there a better place for this?
+    // debugger
     // return shuffledTrials;
   }
 
@@ -188,6 +152,18 @@
   }
 
   function playStim(stimID) {
+    var trialID = stimID.slice(0, stimID.indexOf('-'));
+    var previousTrialID = trialID - 1;
+    if (HeadphoneCheck.useSequential && previousTrialID >= 0) {
+      var response = $('#radioButtons-'+headphoneCheckData.stimID[previousTrialID]+'>label>input:checked').val();
+      if (response === undefined && headphoneCheckData.trialScore[previousTrialID] === undefined) {
+        $('#stim'+headphoneCheckData.stimID[previousTrialID]).css('border-color', 'blue');
+        return;
+      }
+    }
+
+    // playback will occur
+    disableClick('playButton-'+stimID);
     var stimFile = "audio" + stimID;
     // set onended callback
     $("#" + stimFile).on("ended", function() {
@@ -195,19 +171,20 @@
       st_isPlaying = false;
       // activate responses
       if (requirePlayback) {
-        $("#radioButtons" + stimID).css("pointer-events", "auto");
+        $("#radioButtons-" + stimID).css("pointer-events", "auto");
       }
     });
 
     // clear warnings
     var trialBackgroundColor = $('#playButtonBorder-' + stimID).parent().css('background-color');
     $('#playButtonBorder-' + stimID).css('border-color', trialBackgroundColor);
+    // $('#stim'+stimID).css('border-color', validColor);
 
     // play and set state
     $("#" + stimFile).get(0).play();
     st_isPlaying = true;
     // hack to disable responding during playback
-    $("#radioButtons" + stimID).css("pointer-events", "none");
+    $("#radioButtons-" + stimID).css("pointer-events", "none");
   }
 
   function playCalibration(calibrationFile) {
@@ -221,7 +198,6 @@
 
   function disableClick(buttonID) {
     $("#" + buttonID).prop("disabled", true);
-    // console.log('DISABLE->'+buttonID)
   }
 
   function checkCanContinue() {
@@ -290,19 +266,6 @@
       }).appendTo($("#" + divID));
     }
 
-    // //add in the button for playing the sound
-    // $("<button/>", {
-    //   id: "playButton-" + stimID,
-    //   disabled: false,
-    //   click: function () {
-    //     if (!st_isPlaying){
-    //       playStim(stimID);
-    //       disableClick(this.id);
-    //     }
-    //   },
-    //   text: "Play"
-    // });
-
     var trialBackgroundColor = $('#'+divID).css('background-color');
     $("<div/>", {
       id: "playButtonBorder-" + stimID,
@@ -314,7 +277,6 @@
         click: function () {
           if (!st_isPlaying){
             playStim(stimID);
-            disableClick(this.id);
           }
         },
         text: "Play"
@@ -323,9 +285,8 @@
 
     //add in the radio buttons for selecting which sound was softest
     $("<div/>", {
-      id: "radioButtons"+stimID,
+      id: "radioButtons-"+stimID,
       class: "ui-buttonset-vertical",
-      // width: "30%"
     }).appendTo($("#" + divID));
 
     //give the label info for the buttons
@@ -336,7 +297,7 @@
                           ];
 
     $.each(radioButtonInfo, function() {
-      $("#radioButtons" + stimID).append(
+      $("#radioButtons-" + stimID).append(
         $("<label/>", {
           for: "radio" + this.id + '-stim' + stimID,
           class: "radio-label",
@@ -447,15 +408,23 @@
     if (requirePlayback) {
       // no response until the sound is played
       $(".ui-buttonset-vertical").click(function(event) {
-        console.log(event.target);
+        console.log(event);
+        // console.log(event.target);
         var parentPlayButton = $(event.target).parents().filter('.trialDiv').find('button');
         console.log($(parentPlayButton).prop('disabled'))
+        // debugger
         // if the play button isn't disabled, it hasn't been played, so show a warning
         if (!$(parentPlayButton).prop('disabled')) {
           // debugger;
           // $(parentPlayButton).css('border', '3px solid ' + warningColor);
           $(parentPlayButton).parent().css('border', '3px solid ' + warningColor);
+          // parentPlayButton.parent().parent().css('border-color', warningColor);
+          // debugger
           event.preventDefault();
+        }
+        var responseVal = $('#'+this.id+'>label>input:checked').val();
+        if (responseVal !== undefined) {
+          parentPlayButton.parent().parent().css('border-color', validColor);
         }
       });
     }
@@ -467,7 +436,8 @@
       click: function () {
         var canContinue = checkCanContinue();
         for (stimID = 0; stimID < HeadphoneCheck.examplesPerPage; stimID++) {
-          updateCorrect(currentStimuli[stimID], $("input[name=radio-resp" + stimID + "]:checked").val());
+          var trialInd = headphoneCheckData.pageNum * HeadphoneCheck.examplesPerPage + stimID;
+          scoreTrial(trialInd, currentStimuli[stimID], $("input[name=radio-resp" + stimID + "]:checked").val());
         }
         if (headphoneCheckData.pageNum == headphoneCheckData.lastPage - 1) { // TODO: -1 for indexing; make indexing consistent
           teardownHTMLPage();

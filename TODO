@@ -35,7 +35,7 @@ x  - random with replacement
     + (renderHTMLPage with pageNum data)
     + (per trial rendering seems like overkill)
 
-  - fine grained detail of response per trial
+x - fine grained detail of response per trial: implemented per trial score
   - local storage progress caching
     + we need to track per trial responses and playback status (probably easier than infering from disabled button states)
 
