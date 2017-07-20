@@ -12,13 +12,13 @@ TODO:
     flows onto multiple lines for some but not all responses. it should be the
     same for all.
 
-  - shouldn't allow playing the next sound before responding to the current one
+x  - shouldn't allow playing the next sound before responding to the current one
 
-  - How to check correctness?
+x  - How to check correctness?: naively
 
   - API
 
-  -ajax fetch to async
+x  -ajax fetch to async
 
   # 6-15-2017
   - calibration sound should be configurable
