@@ -65,12 +65,12 @@
 
       if (didPass) {
         $('<div/>', {
-          html: 'Headphone check passed. Continue with task.<br/>totalCorrect: ' + getTotalCorrect(results.trialScoreList)
+          html: 'Screening task passed.<br/>totalCorrect: ' + getTotalCorrect(results.trialScoreList)
         }).appendTo($('body'));
       }
       else {
         $('<div/>', {
-          html: 'Headphone check failed. Do something else.<br/>totalCorrect: ' + getTotalCorrect(results.trialScoreList)
+          html: 'Screening task failed.<br/>totalCorrect: ' + getTotalCorrect(results.trialScoreList)
         }).appendTo($('body'));
       }
 
