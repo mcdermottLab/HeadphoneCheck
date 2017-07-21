@@ -1,9 +1,9 @@
 (function(HeadphoneCheck, $, undefined) {
 
   /*** PUBLIC CONFIGURATION VARIABLES ***/
-  HeadphoneCheck.totalTrials = 1;
+  HeadphoneCheck.totalTrials = 2;
   HeadphoneCheck.trialsPerPage = 1;
-  HeadphoneCheck.correctThreshold = 2;
+  HeadphoneCheck.correctThreshold = 1;
   HeadphoneCheck.useSequential = true;
   HeadphoneCheck.doShuffleTrials = true;
   HeadphoneCheck.sampleWithReplacement = true;
@@ -51,8 +51,6 @@
       var results = data.data;
       var didPass = data.didPass;
 
-      alert('did pass headphone check: ' + didPass);
-
       if (didPass) {
         $('<div/>', {
           html: 'Headphone check passed. Continue with task.<br/>totalCorrect: ' + getTotalCorrect(results.trialScoreList)
@@ -65,6 +63,7 @@
       }
 
     });
+
     HeadphoneCheck.loadStimuli(jsonPath, useCache);
   };
 
@@ -180,6 +179,11 @@
           scoreTrial(trialInd, headphoneCheckData.stimDataList[trialInd], response);
         }
         if (headphoneCheckData.pageNum == headphoneCheckData.lastPage - 1) { // TODO: -1 for indexing; make indexing consistent
+          // handle edge case
+          if (HeadphoneCheck.totalTrials == 1 && headphoneCheckData.trialScoreList[0] === undefined) {
+            renderResponseWarnings();
+            return;
+          }
           teardownHTMLPage();
           var didPass = checkPassFail(HeadphoneCheck.correctThreshold);
           // console.log(headphoneCheckData)
@@ -198,8 +202,6 @@
   };
 
   HeadphoneCheck.renderHeadphoneCheckCalibration = function() {
-    // $(document).trigger('hcCalibrationStart');
-
     // render boilerplate instruction text
     $('<div/>', {
       class: 'hc-calibration-instruction',
@@ -271,6 +273,13 @@
   function setupHeadphoneCheck() {
     // set the storage backend
     storageBackend = isStorageAvailable() ? sessionStorage : undefined;
+
+    // pedantic sanity checking HeadphoneCheck.totalTrials
+    if (HeadphoneCheck.totalTrials <= 0) throw new Error('HeadphoneCheck.totalTrials must be positive.');
+    if (HeadphoneCheck.trialsPerPage <= 0) throw new Error('HeadphoneCheck.trialsPerPage must be positive.');
+    if (HeadphoneCheck.totalTrials < HeadphoneCheck.trialsPerPage) throw new Error('HeadphoneCheck.totalTrials cannot be less than HeadphoneCheck.trialsPerPage.');
+    if (HeadphoneCheck.correctThreshold > HeadphoneCheck.totalTrials) throw new Error('HeadphoneCheck.correctThreshold cannot be greater than HeadphoneCheck.totalTrials.');
+
     $(document).trigger('hcInitialized');
   }
 
@@ -427,7 +436,7 @@
     return array.reduce(function getSum(total, val) {
       var num = val === undefined ? 0 : val;
       return total + num;
-    });
+    }, 0);
   }
 
   function checkPassFail(correctThreshold) {

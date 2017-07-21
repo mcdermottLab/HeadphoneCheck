@@ -24,22 +24,24 @@ x  - How to check correctness?: naively
 
   -readme
 
+x  -errors on dumb
+
 x -calibration
 
 x  -ajax fetch to async
 
   # 6-15-2017
-  - calibration sound should be configurable
+x  - calibration sound should be configurable
   - Put example sounds on AWS S3
 x  - Sample with replacement
 x  - handle ajax error
 x  - random with replacement
 
   - fire events on all major state changes (in parenthesis means not required)
-    + overall begin/end
-    + stim json success/fail
-    + calibration begin/end
-    + headphone check begin/end
+x    + overall begin/end
+x    + stim json success/fail
+x    + calibration begin/end
+x    + headphone check begin/end
     + (renderHTMLPage with pageNum data)
     + (per trial rendering seems like overkill)
 
