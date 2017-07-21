@@ -1,14 +1,19 @@
 (function(HeadphoneCheck, $, undefined) {
 
   /*** PUBLIC CONFIGURATION VARIABLES ***/
-  HeadphoneCheck.totalTrials = 2;
-  HeadphoneCheck.trialsPerPage = 1;
-  HeadphoneCheck.correctThreshold = 1;
-  HeadphoneCheck.useSequential = true;
-  HeadphoneCheck.doShuffleTrials = true;
-  HeadphoneCheck.sampleWithReplacement = true;
-  HeadphoneCheck.doCalibration = false;
-  HeadphoneCheck.debug = true;
+  // NOTE: DON'T CHANGE VALUES HERE. Use a similar config object to
+  // override any default values you wish to change.
+  var headphoneCheckDefaultConfig = {
+                                     totalTrials: 6,
+                                     trialsPerPage: 3,
+                                     correctThreshold: 4,
+                                     useSequential: true,
+                                     doShuffleTrials: true,
+                                     sampleWithReplacement: false,
+                                     doCalibration: true,
+                                     useCache: false,
+                                     debug: false,
+                                    };
 
   /*** PRIVATE CONFIGURATION VARIABLES ***/
   var storageBackend;
@@ -30,7 +35,14 @@
   var st_isPlaying = false;
 
   /*** PUBLIC FUNCTIONS ***/
-  HeadphoneCheck.runHeadphoneCheck = function(jsonPath, useCache) {
+  /**
+   * @param  {String} -  URL to json file containing the stimulus data.
+   * @param  {Object} - Object containing headphone check configuration
+   * parameters that will override the defaults defined in headphoneCheckDefaultConfig.
+   * @return {undefined}
+   */
+  HeadphoneCheck.runHeadphoneCheck = function(jsonPath, configData) {
+    parseHeadphoneCheckConfig(configData);
     setupHeadphoneCheck();
 
     $(document).on('hcCalibrationStart', function(event, data) {
@@ -64,24 +76,23 @@
 
     });
 
-    HeadphoneCheck.loadStimuli(jsonPath, useCache);
+    HeadphoneCheck.loadStimuli(jsonPath);
   };
 
   /**
    * Load the experiment configuration, either by restoring cached values
    * from localStorage or by AJAX fetching from a URL.
    *
-   * @param {jsonPath} title - URL to experiment configuration.
-   * @param {useCache} title - If truthy, will attempt to load cached
+   * @param {String} jsonPath - URL to experiment configuration.
    * values from localStorage. If this succeeds, data from the URL will
    * not be fetched. If this fails or is falsy, the data will be loaded
    * from the URL.
    */
-  HeadphoneCheck.loadStimuli = function (jsonPath, useCache) {
+  HeadphoneCheck.loadStimuli = function (jsonPath) {
     // attempt to load from cache
     console.log('Storage Backend: '+storageBackend);
     var didLoadCache = false;
-    if (useCache) didLoadCache = restoreProgress();
+    if (HeadphoneCheck.useCache) didLoadCache = restoreProgress();
 
     // if didn't load from cache, fetch the json file via ajax
     if (!didLoadCache) {
@@ -99,7 +110,7 @@
               headphoneCheckData.calibration = data.calibration;
             }
             headphoneCheckData.lastPage = Math.ceil(headphoneCheckData.stimDataList.length / HeadphoneCheck.trialsPerPage);
-            if (useCache) storeProgress();
+            if (HeadphoneCheck.useCache) storeProgress();
 
             if (HeadphoneCheck.doCalibration) {
               $(document).trigger('hcCalibrationStart');
@@ -118,9 +129,13 @@
     }
   };
 
+  /**
+   * Append the elements required for a page (collection) of headphone
+   * check trials to the DOM and bind associated event listeners.
+   *
+   * @return {undefined}
+   */
   HeadphoneCheck.renderHeadphoneCheckPage = function() {
-    // $(document).trigger('hcHeadphoneCheckStart');
-
     // render boilerplate instruction text
     $('<div/>', {
       class: 'hc-instruction',
@@ -201,6 +216,12 @@
     }).appendTo($('#hc-container'));
   };
 
+  /**
+   * Append the elements required for the headphone check calibration
+   * to the DOM and bind associated event listeners.
+   *
+   * @return {undefined}
+   */
   HeadphoneCheck.renderHeadphoneCheckCalibration = function() {
     // render boilerplate instruction text
     $('<div/>', {
@@ -259,273 +280,23 @@
       click: function () {
         teardownHTMLPage();
         $(document).trigger('hcCalibrationEnd');
-        // HeadphoneCheck.renderHeadphoneCheckPage();
       }
     }).appendTo($('#hc-container'));
   };
 
   /*** PRIVATE FUNCTIONS ***/
   /**
-   * Initialize the headphone check and setup the environment
+   *  Create a div element with everything needed to play and respond to the
+   *  stimulus associated with the provided arguments.
    *
+   * @param  {String} - ID of the element (div) serving as the headphone check
+   * container
+   * @param  {String} - ID of the stimulus to be used for this trail
+   * @param  {String} - URL of the sound source associated with this trial.
    * @return {undefined}
    */
-  function setupHeadphoneCheck() {
-    // set the storage backend
-    storageBackend = isStorageAvailable() ? sessionStorage : undefined;
-
-    // pedantic sanity checking HeadphoneCheck.totalTrials
-    if (HeadphoneCheck.totalTrials <= 0) throw new Error('HeadphoneCheck.totalTrials must be positive.');
-    if (HeadphoneCheck.trialsPerPage <= 0) throw new Error('HeadphoneCheck.trialsPerPage must be positive.');
-    if (HeadphoneCheck.totalTrials < HeadphoneCheck.trialsPerPage) throw new Error('HeadphoneCheck.totalTrials cannot be less than HeadphoneCheck.trialsPerPage.');
-    if (HeadphoneCheck.correctThreshold > HeadphoneCheck.totalTrials) throw new Error('HeadphoneCheck.correctThreshold cannot be greater than HeadphoneCheck.totalTrials.');
-
-    $(document).trigger('hcInitialized');
-  }
-
-  /**
-   * Check if storage is available via localStorage and sessionStorage.
-   * NOTE: this can misbehave if the storage is full.
-   *
-   * @return {Boolean} - Indicates if localStorage and sessionStorage are
-   * available.
-   */
-  function isStorageAvailable(){
-    var test = 'test';
-    try {
-      localStorage.setItem(test, test);
-      localStorage.removeItem(test);
-      sessionStorage.setItem(test, test);
-      sessionStorage.removeItem(test);
-      return true;
-    }
-    catch(e) {
-      $(document).trigger('hcStorageUnavailable');
-      return false;
-    }
-  }
-
-  /**
-   * Attempt to load the cached progress state from a JSON string in
-   * local storage.
-   *
-   * @return {bool} - Indicates if restore was successful.
-   */
-  function restoreProgress() {
-    var didRestore = false;
-    if (storageBackend !== undefined && storageKey in storageBackend) {
-      // Code for localStorage/sessionStorage
-      headphoneCheckData = JSON.parse(storageBackend.getItem(storageKey));
-      $(document).trigger('hcRestoreProgressSuccess');
-      didRestore = true;
-    }
-    else {
-      // No Web Storage support..
-      $(document).trigger('hcRestoreProgressFail');
-    }
-    return didRestore;
-  }
-
-  function storeProgress() {
-    if (storageBackend !== undefined) {
-      storageBackend.setItem(storageKey, JSON.stringify(headphoneCheckData));
-      $(document).trigger('hcStoreProgressSuccess');
-    }
-    else {
-      // No Web Storage support..
-      $(document).trigger('hcStoreProgressFail');
-    }
-  }
-
-  function scoreTrial(trialInd, stimData, response) {
-    if (response !== undefined) {
-      var score = stimData.correct == response ? 1 : 0;
-      headphoneCheckData.trialScoreList[trialInd] = score;
-      headphoneCheckData.responseList[trialInd] = response;
-      return score;
-    }
-  }
-
-  //FUNCTIONS FOR INITIALIZING THE STIMULI AND SHUFFLING THE JSON FILE
-  function randomInt(a, b, n) {
-    // generate n random integers between [a, b)
-    var randIntList = [];
-    var minVal = Math.min(a, b);
-    var maxVal = Math.max(a, b);
-    for (var i = 0; i < n; i++) {
-      randIntList.push(Math.floor(minVal + (maxVal - minVal) * Math.random()));
-    }
-    outVal = n == 1 ? randIntList[0] : randIntList;
-    return outVal;
-  }
-
-  function sampleWithReplacement(arr, n) {
-    samples = [];
-    for(var i = 0; i < n; i++) {
-      ind = randomInt(0, arr.length, 1);
-      samples.push(arr[ind]);
-    }
-    return samples;
-  }
-
-  // function sampleWithoutReplacement(inarr, n) {
-  //   var arr = JSON.parse(JSON.stringify(inarr));
-  //   samples = [];
-  //   for(var i = 0; i < n; i++) {
-  //     ind = randomInt(arr.length);
-  //     samples.push(arr[ind]);
-  //     arr.splice(ind, 1);
-  //   }
-  //   return samples;
-  // }
-
-  function shuffle(array, n) {
-    if (n === undefined) {
-      n = array.length;
-    }
-    else if (n <= 0) {
-      n = array.length;
-      console.warn('Requested samples is not greater than 0. Using full array.');
-    }
-    else if (n > array.length) {
-      n = array.length;
-      console.warn('Requested more samples than there are available; use sampleWithReplacement. Using full array.');
-    }
-    var nInd = n;
-
-    var currentIndex = array.length, temporaryValue, randomIndex;
-    // While there remain elements to shuffle...
-    while (0 !== currentIndex) {
-      // Pick a remaining element...
-      randomIndex = Math.floor(Math.random() * currentIndex);
-      currentIndex -= 1;
-
-      // And swap it with the current element.
-      temporaryValue = array[currentIndex];
-      array[currentIndex] = array[randomIndex];
-      array[randomIndex] = temporaryValue;
-    }
-    return array.slice(0, nInd);
-  }
-
-  function shuffleTrials(trialArray, n, withReplacement) {
-    console.log('n: ' + n +' w/R: ' + withReplacement)
-    var shuffledTrials = withReplacement ? sampleWithReplacement(trialArray, n) : shuffle(trialArray, n);
-    headphoneCheckData.stimDataList = shuffledTrials;
-    headphoneCheckData.stimIDList = headphoneCheckData.stimDataList.map(function (val, ind) {
-      // prefix the stim id with the temporary (page) trial index, allows for duplicate trials
-       return 'trial' + ind + '-src' + val.id;
-    });
-    headphoneCheckData.trialScoreList = Array(headphoneCheckData.stimDataList.length); // TODO: is there a better place for this?
-  }
-
-  // TODO: fix this, this doesn't work
-  function parseAudioType(stimID) {
-    console.log('TYPE: ' +stimID);
-    console.log(headphoneCheckData.stimDataList);
-    var typeStr = headphoneCheckData.stimDataList[stimID];
-    console.log('TYPE: '+typeStr);
-    if (typeStr === undefined) {
-      typeStr = defaultAudioType;
-    }
-    console.log('TYPE: '+typeStr);
-    return typeStr;
-  }
-
-  function getTotalCorrect(array) {
-    return array.reduce(function getSum(total, val) {
-      var num = val === undefined ? 0 : val;
-      return total + num;
-    }, 0);
-  }
-
-  function checkPassFail(correctThreshold) {
-    var totalCorrect = getTotalCorrect(headphoneCheckData.trialScoreList);
-    return totalCorrect >= correctThreshold;
-  }
-
-  function playStim(stimID) {
-    var trialID = stimID.slice(0, stimID.indexOf('-'));
-    var previousTrialID = trialID - 1;
-    if (HeadphoneCheck.useSequential && previousTrialID >= 0) {
-      var response = getResponseFromRadioButtonGroup(headphoneCheckData.stimIDList[previousTrialID]);
-      if (response === undefined && headphoneCheckData.trialScoreList[previousTrialID] === undefined) {
-        $('#hc-stim-' + headphoneCheckData.stimIDList[previousTrialID]).css('border-color', warningColor);
-        return;
-      }
-    }
-
-    // playback will occur
-    disableClick('hc-play-button-' + stimID);
-    var stimFile = 'hc-audio-' + stimID;
-    // set onended callback
-    $('#' + stimFile).on('ended', function() {
-      // reset playback state
-      st_isPlaying = false;
-      // activate responses
-      if (requirePlayback) $('#hc-radio-buttonset-' + stimID).css('pointer-events', 'auto');
-    });
-
-    // clear warnings
-    var trialBackgroundColor = $('#hc-play-button-border-' + stimID).parent().css('background-color');
-    $('#hc-play-button-border-' + stimID).css('border-color', trialBackgroundColor);
-
-    // play and set state
-    $('#' + stimFile).get(0).play();
-    st_isPlaying = true;
-    // hack to disable responding during playback
-    $('#hc-radio-buttonset-' + stimID).css('pointer-events', 'none');
-  }
-
-  function playCalibration(calibrationFile) {
-    $('#' + calibrationFile).on('ended', function() {
-      // reset playback state
-      st_isPlaying = false;
-      $('#hc-calibration-continue-button').prop('disabled', false);
-    });
-    $('#' + calibrationFile).get(0).play();
-    st_isPlaying = true;
-  }
-
-  function disableClick(buttonID) {
-    $('#' + buttonID).prop('disabled', true);
-  }
-
-  function checkCanContinue() {
-    // Check that each question has a response, if not, highlight what is needed
-    // TODO: This is HACKY and probably isn't the best idea
-    numResponses = $('.hc-buttonset-vertical>label>input[type=radio]:checked').length;
-    return numResponses >= HeadphoneCheck.trialsPerPage; // easy for user to circumvent check
-  }
-
-  function renderResponseWarnings() {
-    // toggle the response warnings
-
-    // get parent div of anything checked, should only be 1 radio button per div
-    var checked = $('.hc-buttonset-vertical>label>input[type=radio]:checked').parent().parent();
-
-    // get parent divs of anything unchecked, can be as many as # of responses
-    var unchecked = $('.hc-buttonset-vertical>label>input[type=radio]').not(':checked').parent().parent();
-
-    // get all top level divs (i.e., trial containers) without any responses
-    var uncheckedTrials = $(unchecked).not(checked).parent();
-
-    // hide warning on completed trials
-    $(checked).parent().css('border', '5px solid ' + validColor);
-
-    // show warning on empty trials
-    $(uncheckedTrials).css('border', '5px solid ' + warningColor);
-  }
-
-  function getResponseFromRadioButtonGroup(elemID) {
-    console.log('####################### '+ elemID)
-    return $('#hc-radio-buttonset-'+elemID+'>label>input:checked').val();
-  }
-
-  // renderHTML takes in the stimulus ID and the stimulus file and creates a div
-  // element with everything needed to play and respond to this sound
   function renderHeadphoneCheckTrial(stimDiv, stimID, stimFile) {
-    console.log('--->' +' '+ stimDiv + stimID + ', ' + stimFile)
+    console.log('--->' +' '+ stimDiv + ' ' + stimID + ', ' + stimFile)
     if (stimFile === undefined) return;
     var divID = 'hc-stim-' + stimID;
     $('<div/>', {id: divID, class: 'hc-trial-div'}).appendTo(('#' + stimDiv));
@@ -589,8 +360,354 @@
     });
   }
 
+  /**
+   * Do everything required to clean up a headphone check page after it
+   * is no longer needed.
+   *
+   * @return {undefined}
+   */
   function teardownHTMLPage() {
     $('#hc-container').empty();
+  }
+
+  function parseHeadphoneCheckConfig(configData) {
+    // Use configData fields to override defaults
+    $.each(headphoneCheckDefaultConfig, function(index, defaultVal) {
+      HeadphoneCheck[index] = index in configData ? configData[index] : defaultVal;
+    });
+  }
+
+  /**
+   * Initialize the headphone check and setup the environment.
+   *
+   * @return {undefined}
+   */
+  function setupHeadphoneCheck() {
+    // set the storage backend
+    storageBackend = isStorageAvailable() ? sessionStorage : undefined;
+
+    // pedantic sanity checking HeadphoneCheck.totalTrials
+    if (HeadphoneCheck.totalTrials <= 0) throw new Error('HeadphoneCheck.totalTrials must be positive.');
+    if (HeadphoneCheck.trialsPerPage <= 0) throw new Error('HeadphoneCheck.trialsPerPage must be positive.');
+    if (HeadphoneCheck.totalTrials < HeadphoneCheck.trialsPerPage) throw new Error('HeadphoneCheck.totalTrials cannot be less than HeadphoneCheck.trialsPerPage.');
+    if (HeadphoneCheck.correctThreshold > HeadphoneCheck.totalTrials) throw new Error('HeadphoneCheck.correctThreshold cannot be greater than HeadphoneCheck.totalTrials.');
+
+    $(document).trigger('hcInitialized');
+  }
+
+  /**
+   * Setup and execute the logic required for headphone check stimulus
+   * playback.
+   *
+   * @param  {String} - ID of the stimulus element to play
+   * @return {undefined}
+   */
+  function playStim(stimID) {
+    var trialID = stimID.slice(0, stimID.indexOf('-'));
+    var previousTrialID = trialID - 1;
+    if (HeadphoneCheck.useSequential && previousTrialID >= 0) {
+      var response = getResponseFromRadioButtonGroup(headphoneCheckData.stimIDList[previousTrialID]);
+      if (response === undefined && headphoneCheckData.trialScoreList[previousTrialID] === undefined) {
+        $('#hc-stim-' + headphoneCheckData.stimIDList[previousTrialID]).css('border-color', warningColor);
+        return;
+      }
+    }
+
+    // playback will occur
+    disableClick('hc-play-button-' + stimID);
+    var stimFile = 'hc-audio-' + stimID;
+    // set onended callback
+    $('#' + stimFile).on('ended', function() {
+      // reset playback state
+      st_isPlaying = false;
+      // activate responses
+      if (requirePlayback) $('#hc-radio-buttonset-' + stimID).css('pointer-events', 'auto');
+    });
+
+    // clear warnings
+    var trialBackgroundColor = $('#hc-play-button-border-' + stimID).parent().css('background-color');
+    $('#hc-play-button-border-' + stimID).css('border-color', trialBackgroundColor);
+
+    // play and set state
+    $('#' + stimFile).get(0).play();
+    st_isPlaying = true;
+    // hack to disable responding during playback
+    $('#hc-radio-buttonset-' + stimID).css('pointer-events', 'none');
+  }
+
+  /**
+   * Disable the provided playback button.
+   *
+   * @param  {String} - ID of the button element to disable
+   * @return {undefined}
+   */
+  function disableClick(buttonID) {
+    $('#' + buttonID).prop('disabled', true);
+  }
+
+  /**
+   * Setup and execute the logic required for headphone check calibration
+   * sound playback.
+   *
+   * @param  {String} - ID of the calibration element to play
+   * @return {undefined}
+   */
+  function playCalibration(calibrationID) {
+    $('#' + calibrationID).on('ended', function() {
+      // reset playback state
+      st_isPlaying = false;
+      $('#hc-calibration-continue-button').prop('disabled', false);
+    });
+    $('#' + calibrationID).get(0).play();
+    st_isPlaying = true;
+  }
+
+  /**
+   * Check that each question has a response, if not, highlight what is needed.
+   *
+   * @return {undefined}
+   */
+  function checkCanContinue() {
+    // TODO: This is HACKY and probably isn't the best idea
+    numResponses = $('.hc-buttonset-vertical>label>input[type=radio]:checked').length;
+    return numResponses >= HeadphoneCheck.trialsPerPage;
+  }
+
+  /**
+   * Display the required the response warnings for a headphone check trial.
+   *
+   * @return {undefined}
+   */
+  function renderResponseWarnings() {
+    // get parent div of anything checked, should only be 1 radio button per div
+    var checked = $('.hc-buttonset-vertical>label>input[type=radio]:checked').parent().parent();
+
+    // get parent divs of anything unchecked, can be as many as # of responses
+    var unchecked = $('.hc-buttonset-vertical>label>input[type=radio]').not(':checked').parent().parent();
+
+    // get all top level divs (i.e., trial containers) without any responses
+    var uncheckedTrials = $(unchecked).not(checked).parent();
+
+    // hide warning on completed trials
+    $(checked).parent().css('border', '5px solid ' + validColor);
+
+    // show warning on empty trials
+    $(uncheckedTrials).css('border', '5px solid ' + warningColor);
+  }
+
+  /**
+   * Determine if there were sufficient correct responses to pass the
+   * headphone check.
+   *
+   * @param  {Number} - Number of correct trials (score) required to
+   * pass the headphone check
+   * @return {Boolean} - Indicates if the headphone check was passed or
+   * failed.
+   */
+  function checkPassFail(correctThreshold) {
+    var totalCorrect = getTotalCorrect(headphoneCheckData.trialScoreList);
+    return totalCorrect >= correctThreshold;
+  }
+
+  /**
+   * Count the total number of correct responses by summing the values
+   * in the input array.
+   *
+   * @param  {Array[Number]} - Array of scores to sum
+   * @return {Number} - Sum of scores in the input array, counting
+   * undefined values as 0
+   */
+  function getTotalCorrect(array) {
+    return array.reduce(function getSum(total, val) {
+      var num = val === undefined ? 0 : val;
+      return total + num;
+    }, 0);
+  }
+
+
+  function scoreTrial(trialInd, stimData, response) {
+    if (response !== undefined) {
+      var score = stimData.correct == response ? 1 : 0;
+      headphoneCheckData.trialScoreList[trialInd] = score;
+      headphoneCheckData.responseList[trialInd] = response;
+      return score;
+    }
+  }
+
+  /**
+   * Get the response from a set of radio buttons.
+   *
+   * @param  {String} - ID of the radio buttonset element to collect a response
+   * from
+   *
+   * @return {Undefined, String, Value} - Value of the selected radio button
+   * in the buttonset, likely a String. If no button is selected, undefined
+   * is returned.
+   */
+  function getResponseFromRadioButtonGroup(elemID) {
+    console.log('####################### '+ elemID)
+    return $('#hc-radio-buttonset-'+elemID+'>label>input:checked').val();
+  }
+
+  function shuffleTrials(trialArray, n, withReplacement) {
+    console.log('n: ' + n +' w/R: ' + withReplacement)
+    var shuffledTrials = withReplacement ? sampleWithReplacement(trialArray, n) : shuffle(trialArray, n);
+    headphoneCheckData.stimDataList = shuffledTrials;
+    headphoneCheckData.stimIDList = headphoneCheckData.stimDataList.map(function (val, ind) {
+      // prefix the stim id with the temporary (page) trial index, allows for duplicate trials
+       return 'trial' + ind + '-src' + val.id;
+    });
+    headphoneCheckData.trialScoreList = Array(headphoneCheckData.stimDataList.length); // TODO: is there a better place for this?
+  }
+
+  /**
+   * Generate n random samples drawn uniformly with replacement from array.
+   *
+   * @param  {Array} - Array to sample from
+   * @param  {Number} - Number of samples to generate
+   * @return {Array[Number]} - List of samples
+   */
+  function sampleWithReplacement(array, n) {
+    samples = [];
+    for(var i = 0; i < n; i++) {
+      ind = randomInt(0, array.length, 1);
+      samples.push(array[ind]);
+    }
+    return samples;
+  }
+
+  /**
+   * Shuffle the array and return the first n values. This is intended
+   * to be used to sample without replacement but contains vestigial
+   * remnants of Knuth shuffle.
+   *
+   * @param  {Array} - Array to shuffle
+   * @param  {Number} - Number of samples to include in the output list;
+   * if n is undefined, not positive, or larger than the input array,
+   * the full shuffled list will be returned.
+   * @return {Array[Number]} - List of samples from the shuffled list
+   */
+  function shuffle(array, n) {
+    if (n === undefined) {
+      n = array.length;
+    }
+    else if (n <= 0) {
+      n = array.length;
+      console.warn('Requested samples is not greater than 0. Using full array.');
+    }
+    else if (n > array.length) {
+      n = array.length;
+      console.warn('Requested more samples than there are available; use sampleWithReplacement. Using full array.');
+    }
+    var nInd = n;
+
+    var currentIndex = array.length, temporaryValue, randomIndex;
+    // While there remain elements to shuffle...
+    while (0 !== currentIndex) {
+      // Pick a remaining element...
+      randomIndex = Math.floor(Math.random() * currentIndex);
+      currentIndex -= 1;
+
+      // And swap it with the current element.
+      temporaryValue = array[currentIndex];
+      array[currentIndex] = array[randomIndex];
+      array[randomIndex] = temporaryValue;
+    }
+    return array.slice(0, nInd);
+  }
+
+  /** Generate n random integers between [a, b)
+  */
+  /**
+   * @param  {Number} - Minimum of the sampling interval
+   * @param  {Number} - Maximum of the sampling interval
+   * @param  {Number} - Number of samples to generate
+   * @return {Number or Array[Number]} - Single sample or list of samples
+   */
+  function randomInt(a, b, n) {
+    var randIntList = [];
+    var minVal = Math.min(a, b);
+    var maxVal = Math.max(a, b);
+    for (var i = 0; i < n; i++) {
+      randIntList.push(Math.floor(minVal + (maxVal - minVal) * Math.random()));
+    }
+    outVal = n == 1 ? randIntList[0] : randIntList;
+    return outVal;
+  }
+
+  /**
+   * Attempt to load the cached progress state from a JSON string in
+   * local storage.
+   *
+   * @return {Boolean} - Indicates if restore was successful.
+   */
+  function restoreProgress() {
+    var didRestore = false;
+    if (storageBackend !== undefined && storageKey in storageBackend) {
+      // Code for localStorage/sessionStorage
+      headphoneCheckData = JSON.parse(storageBackend.getItem(storageKey));
+      $(document).trigger('hcRestoreProgressSuccess');
+      didRestore = true;
+    }
+    else {
+      // No Web Storage support..
+      $(document).trigger('hcRestoreProgressFail');
+    }
+    return didRestore;
+  }
+
+  /**
+   * Store the data in headphoneCheckData to the storage object. The
+   * storage backend (sessionStorage/localStorage) is defined by
+   * the value in `storageBackend`.
+   *
+   * @return {undefined}
+   */
+  function storeProgress() {
+    if (storageBackend !== undefined) {
+      storageBackend.setItem(storageKey, JSON.stringify(headphoneCheckData));
+      $(document).trigger('hcStoreProgressSuccess');
+    }
+    else {
+      // No Web Storage support..
+      $(document).trigger('hcStoreProgressFail');
+    }
+  }
+
+  /**
+   * Check if storage is available via localStorage and sessionStorage.
+   * NOTE: this can misbehave if the storage is full.
+   *
+   * @return {Boolean} - Indicates if localStorage and sessionStorage are
+   * available.
+   */
+  function isStorageAvailable(){
+    var test = 'test';
+    try {
+      localStorage.setItem(test, test);
+      localStorage.removeItem(test);
+      sessionStorage.setItem(test, test);
+      sessionStorage.removeItem(test);
+      return true;
+    }
+    catch(e) {
+      $(document).trigger('hcStorageUnavailable');
+      return false;
+    }
+  }
+
+
+  // TODO: fix this, this doesn't work
+  function parseAudioType(stimID) {
+    console.log('TYPE: ' +stimID);
+    console.log(headphoneCheckData.stimDataList);
+    var typeStr = headphoneCheckData.stimDataList[stimID];
+    console.log('TYPE: '+typeStr);
+    if (typeStr === undefined) {
+      typeStr = defaultAudioType;
+    }
+    console.log('TYPE: '+typeStr);
+    return typeStr;
   }
 
 }( window.HeadphoneCheck = window.HeadphoneCheck || {}, jQuery));
@@ -614,8 +731,18 @@ $(document).ready(function() {
   //   alert( event.type );
   // });
 
-  var useCache = false;
+  var headphoneCheckConfig = {
+                               totalTrials: 2,
+                               trialsPerPage: 1,
+                               correctThreshold: 1,
+                               useSequential: true,
+                               doShuffleTrials: true,
+                               sampleWithReplacement: true,
+                               doCalibration: false,
+                               useCache: false,
+                               debug: true,
+                             };
   var jsonPath = 'headphone_check_stim.json';
-  HeadphoneCheck.runHeadphoneCheck(jsonPath, useCache);
+  HeadphoneCheck.runHeadphoneCheck(jsonPath, headphoneCheckConfig);
 });
 

@@ -16,11 +16,11 @@ x  - shouldn't allow playing the next sound before responding to the current one
 
 x  - How to check correctness?: naively
 
-  - API
+x  - API
 
   - add events
 
-  - document
+x  - document
 
   -readme
 
