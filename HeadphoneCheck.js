@@ -4,6 +4,7 @@
   // NOTE: DON'T CHANGE VALUES HERE. Use a similar config object to
   // override any default values you wish to change.
   var headphoneCheckDefaultConfig = {
+                                     jsonPath: 'http://mcdermottlab.mit.edu/publicHeadphoneCheck/headphoneCheckDefaultStimuli.json',
                                      totalTrials: 6,
                                      trialsPerPage: 3,
                                      correctThreshold: 4,
@@ -41,7 +42,7 @@
    * parameters that will override the defaults defined in headphoneCheckDefaultConfig.
    * @return {undefined}
    */
-  HeadphoneCheck.runHeadphoneCheck = function(jsonPath, configData) {
+  HeadphoneCheck.runHeadphoneCheck = function(configData) {
     parseHeadphoneCheckConfig(configData);
     setupHeadphoneCheck();
 
@@ -76,7 +77,7 @@
 
     });
 
-    HeadphoneCheck.loadStimuli(jsonPath);
+    HeadphoneCheck.loadStimuli(HeadphoneCheck.jsonPath);
   };
 
   /**
@@ -100,6 +101,7 @@
           dataType: 'json',
           url: jsonPath,
           async: true,
+          crossDomain: true,
           success: function (data) {
             $(document).trigger('hcLoadStimuliSuccess', {'data': data});
             headphoneCheckData.jsonData = data;
@@ -373,6 +375,7 @@
   function parseHeadphoneCheckConfig(configData) {
     // Use configData fields to override defaults
     $.each(headphoneCheckDefaultConfig, function(index, defaultVal) {
+      console.log(index)
       HeadphoneCheck[index] = index in configData ? configData[index] : defaultVal;
     });
   }
@@ -732,6 +735,7 @@ $(document).ready(function() {
   // });
 
   var headphoneCheckConfig = {
+                               jsonPath: 'headphoneCheckDefaultStimuli.json',
                                totalTrials: 2,
                                trialsPerPage: 1,
                                correctThreshold: 1,
@@ -742,7 +746,6 @@ $(document).ready(function() {
                                useCache: false,
                                debug: true,
                              };
-  var jsonPath = 'headphone_check_stim.json';
-  HeadphoneCheck.runHeadphoneCheck(jsonPath, headphoneCheckConfig);
+  HeadphoneCheck.runHeadphoneCheck(headphoneCheckConfig);
 });
 

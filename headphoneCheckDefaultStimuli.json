@@ -1,0 +1,11 @@
+{
+  "stimuli":[
+              {"id":1, "src": "http://mcdermottlab.mit.edu/publicHeadphoneCheck/audio_calibration/antiphase_HC_ISO.wav", "correct":"1"},
+              {"id":2, "src": "http://mcdermottlab.mit.edu/publicHeadphoneCheck/audio_calibration/antiphase_HC_IOS.wav", "correct":"2" },
+              {"id":3, "src": "http://mcdermottlab.mit.edu/publicHeadphoneCheck/audio_calibration/antiphase_HC_SOI.wav", "correct":"3"},
+              {"id":4, "src": "http://mcdermottlab.mit.edu/publicHeadphoneCheck/audio_calibration/antiphase_HC_SIO.wav", "correct":"1"},
+              {"id":5, "src": "http://mcdermottlab.mit.edu/publicHeadphoneCheck/audio_calibration/antiphase_HC_OSI.wav", "correct":"2" },
+              {"id":6, "src": "http://mcdermottlab.mit.edu/publicHeadphoneCheck/audio_calibration/antiphase_HC_OIS.wav", "correct":"3"}
+            ],
+  "calibration": {"src": "http://mcdermottlab.mit.edu/publicHeadphoneCheck/audio_calibration/noise_calib_stim.wav"}
+}
