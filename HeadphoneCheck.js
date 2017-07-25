@@ -406,7 +406,7 @@
    * @return {undefined}
    */
   function playStim(stimID) {
-    var trialID = stimID.slice(0, stimID.indexOf('-'));
+    var trialID = /trial(\d+)/.exec(stimID)[1]; // this is brittle
     var previousTrialID = trialID - 1;
     if (HeadphoneCheck.useSequential && previousTrialID >= 0) {
       var response = getResponseFromRadioButtonGroup(headphoneCheckData.stimIDList[previousTrialID]);
@@ -736,8 +736,8 @@ $(document).ready(function() {
 
   var headphoneCheckConfig = {
                                jsonPath: 'headphoneCheckDefaultStimuli.json',
-                               totalTrials: 2,
-                               trialsPerPage: 1,
+                               totalTrials: 3,
+                               trialsPerPage: 2,
                                correctThreshold: 1,
                                useSequential: true,
                                doShuffleTrials: true,
