@@ -11,24 +11,17 @@ TODO:
 x  - when browser is thin (say half of screen size on laptop), the response text
     flows onto multiple lines for some but not all responses. it should be the
     same for all.
-
 x  - shouldn't allow playing the next sound before responding to the current one
 
 x  - How to check correctness?: naively
-
 x  - API
-
   - add events
-
 x  - document
-
   -readme
-
 x  -errors on dumb
-
 x -calibration
-
 x  -ajax fetch to async
+  - check browser compatibility
 
   # 6-15-2017
 x  - calibration sound should be configurable
@@ -49,13 +42,14 @@ x - fine grained detail of response per trial: implemented per trial score
   - local storage progress caching
     + we need to track per trial responses and playback status (probably easier than infering from disabled button states)
 
+  - figure out how to handle css styles properly
   - refactor all callback and event binding to single function? it's pretty messy as it is
-  - do we need a more fine grained warning/feedback system?
+x - do we need a more fine grained warning/feedback system?: kind of implemented this for sequential trials
   - check playback counters if `requirePlayback` is false
   - support for multiple audio sources
   - fix audio source type
-  x - json schema -> what if IDs aren't unique?: shouldn't matter, each trials has a unique index prefix
-  - render finished page?
+x - json schema -> what if IDs aren't unique?: shouldn't matter, each trials has a unique index prefix
+x - render finished page?: this is the user's responsibility
 
 
 

@@ -1,0 +1,14 @@
+.hc-buttonset-vertical label{
+  display: block;
+}
+.hc-trial-div {
+  border: 5px solid black;
+  display: table;
+  padding: 5px;
+  margin: 5px;
+}
+.hc-calibration-div {
+  position: relative;
+  width: 30%;
+  margin: 5px;
+}
