@@ -10,7 +10,7 @@ All events triggered by the headphone check code are prefixed by "hc" and fired 
 + hcLoadStimuliSuccess
 + hcLoadStimuliFail
 + hcLoadStimuliDone
-+ 
+
 + hcInitialized
 
 + hcCalibrationStart

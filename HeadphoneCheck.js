@@ -41,20 +41,16 @@
     setupHeadphoneCheck();
 
     $(document).on('hcCalibrationStart', function(event, data) {
-      console.log('calib start event')
       HeadphoneCheck.renderHeadphoneCheckCalibration();
     });
     $(document).on('hcCalibrationEnd', function(event, data) {
-      console.log('calib end event')
       $(document).trigger('hcHeadphoneCheckStart');
     });
 
     $(document).on('hcHeadphoneCheckStart', function(event, data) {
-      console.log('HC start event')
       HeadphoneCheck.renderHeadphoneCheckPage();
     });
     $(document).on('hcHeadphoneCheckEnd', function(event, data) {
-      console.log('HC end event')
       var results = data.data;
       var didPass = data.didPass;
 
@@ -135,8 +131,9 @@
       text: 'Test sounds can only be played once!'
     }).appendTo($('#hc-container'));
 
+    if (HeadphoneCheck.debug) console.log(headphoneCheckData);
+
     //get the stimuli to display on this page
-    console.log(headphoneCheckData)
     for (i = 0; i < HeadphoneCheck.trialsPerPage; i++) {
       var trialInd = headphoneCheckData.pageNum * HeadphoneCheck.trialsPerPage + i;
       if (trialInd < HeadphoneCheck.totalTrials) {
@@ -178,21 +175,23 @@
           var response = getResponseFromRadioButtonGroup(headphoneCheckData.stimIDList[trialInd]);
           scoreTrial(trialInd, headphoneCheckData.stimDataList[trialInd], response);
         }
-        if (headphoneCheckData.pageNum == headphoneCheckData.lastPage - 1) { // TODO: -1 for indexing; make indexing consistent
-          // handle edge case
-          if (HeadphoneCheck.totalTrials == 1 && headphoneCheckData.trialScoreList[0] === undefined) {
-            renderResponseWarnings();
-            return;
+        // debugger
+        if (canContinue) { // Advance the page
+          if (headphoneCheckData.pageNum == headphoneCheckData.lastPage - 1) {// TODO: -1 for indexing; make indexing consistent
+            // handle edge case of first page is last page
+            if (HeadphoneCheck.totalTrials == 1 && headphoneCheckData.trialScoreList[0] === undefined) {
+              renderResponseWarnings();
+              return;
+            }
+            teardownHTMLPage();
+            var didPass = checkPassFail(HeadphoneCheck.correctThreshold);
+            $(document).trigger('hcHeadphoneCheckEnd', {'didPass': didPass, 'data': headphoneCheckData});
           }
-          teardownHTMLPage();
-          var didPass = checkPassFail(HeadphoneCheck.correctThreshold);
-          // console.log(headphoneCheckData)
-          $(document).trigger('hcHeadphoneCheckEnd', {'didPass': didPass, 'data': headphoneCheckData});
-        }
-        else if (canContinue) { // Advance the page
-          teardownHTMLPage();
-          headphoneCheckData.pageNum++;
-          HeadphoneCheck.renderHeadphoneCheckPage();
+          else {
+            teardownHTMLPage();
+            headphoneCheckData.pageNum++;
+            HeadphoneCheck.renderHeadphoneCheckPage();
+          }
         }
         else { // need responses, don't advance page, show warnings
           renderResponseWarnings();
@@ -234,8 +233,6 @@
     //add in the audio source
     $('<audio/>', {
         id: 'hc-calibration-audio',
-        // type: 'audio/mpeg', // TODO: Factor this out, should be user defined
-        // type: parseAudioType(stimID),
         src: headphoneCheckData.calibration.src
       }).appendTo($('#hc-calibration-div'));
 
@@ -281,7 +278,7 @@
    * @return {undefined}
    */
   function renderHeadphoneCheckTrial(stimDiv, stimID, stimFile) {
-    console.log('--->' +' '+ stimDiv + ' ' + stimID + ', ' + stimFile)
+    if (HeadphoneCheck.debug) console.log('--->' +' '+ stimDiv + ' ' + stimID + ', ' + stimFile);
     if (stimFile === undefined) return;
     var divID = 'hc-stim-' + stimID;
     $('<div/>', {id: divID, class: 'hc-trial-div'}).appendTo(('#' + stimDiv));
@@ -289,8 +286,6 @@
     //add in the audio source
     $('<audio/>', {
         id: 'hc-audio-' + stimID,
-        // type: 'audio/mpeg', // TODO: Factor this out, should be user defined
-        // type: parseAudioType(stimID),
         src: stimFile
       }).appendTo($('#' + divID));
 
@@ -358,7 +353,6 @@
   function parseHeadphoneCheckConfig(configData) {
     // Use configData fields to override defaults
     $.each(headphoneCheckDefaultConfig, function(index, defaultVal) {
-      console.log(index)
       HeadphoneCheck[index] = index in configData ? configData[index] : defaultVal;
     });
   }
@@ -446,14 +440,15 @@
   }
 
   /**
-   * Check that each question has a response, if not, highlight what is needed.
+   * Check that each question has a response.
    *
    * @return {undefined}
    */
   function checkCanContinue() {
     // TODO: This is HACKY and probably isn't the best idea
-    numResponses = $('.hc-buttonset-vertical>label>input[type=radio]:checked').length;
-    return numResponses >= HeadphoneCheck.trialsPerPage;
+    var numResponses = $('.hc-buttonset-vertical>label>input[type=radio]:checked').length;
+    var numRenderedTrials = $('.hc-buttonset-vertical').length;
+    return numResponses >= numRenderedTrials;
   }
 
   /**
@@ -528,12 +523,10 @@
    * is returned.
    */
   function getResponseFromRadioButtonGroup(elemID) {
-    console.log('####################### '+ elemID)
     return $('#hc-radio-buttonset-'+elemID+'>label>input:checked').val();
   }
 
   function shuffleTrials(trialArray, n, withReplacement) {
-    console.log('n: ' + n +' w/R: ' + withReplacement)
     var shuffledTrials = withReplacement ? sampleWithReplacement(trialArray, n) : shuffle(trialArray, n);
     headphoneCheckData.stimDataList = shuffledTrials;
     headphoneCheckData.stimIDList = headphoneCheckData.stimDataList.map(function (val, ind) {
@@ -638,7 +631,7 @@ $(document).ready(function() {
                                doShuffleTrials: true,
                                sampleWithReplacement: true,
                                doCalibration: false,
-                               debug: true,
+                               debug: false,
                              };
   HeadphoneCheck.runHeadphoneCheck(headphoneCheckConfig);
 });
