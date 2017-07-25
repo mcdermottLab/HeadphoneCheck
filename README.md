@@ -7,10 +7,14 @@ This can be tested locally by starting a http server (eg. python simple HTTP ser
 Events:
 =======
 All events triggered by the headphone check code are prefixed by "hc" and fired on document.
-+ hcStorageUnavailable
-+ hcStoreProgressSuccess
-+ hcStoreProgressFail
-+ hcRestoreProgressSuccess
-+ hcRestoreProgressFail
 + hcLoadStimuliSuccess
++ hcLoadStimuliFail
++ hcLoadStimuliDone
++ 
 + hcInitialized
+
++ hcCalibrationStart
++ hcCalibrationEnd
+
++ hcHeadphoneCheckStart
++ hcHeadphoneCheckEnd

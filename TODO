@@ -33,7 +33,7 @@ x  - random with replacement
 
   - fire events on all major state changes (in parenthesis means not required)
 x    + overall begin/end
-x    + stim json success/fail
+x    + stim json success/fail/done
 x    + calibration begin/end
 x    + headphone check begin/end
     + (renderHTMLPage with pageNum data)
