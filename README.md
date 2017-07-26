@@ -9,14 +9,14 @@ Six trials of this task, passing participants with >=5 trials correct, appears s
 
 
 
-Headphone check code
+**Headphone screening code**
 
 This can be tested locally by starting a HTTP server (eg. python simple HTTP server: run 'python -m SimpleHTTPServer 8000'). You can access a demo page at "localhost:8000/HeadphoneCheck.html"
 
 For code support, bug fixes, or feature requests contact Ray Gonzalez raygon@mit.edu. For other issues, contact Kevin J. P. Woods kwoods@mit.edu.
 
-## Overview
-Setting up a headphone check requires the following steps:
+## Code Overview
+Setting up a headphone screening requires the following steps:
 
 1. [Source jQuery](#dependencies)
 2. [Source HeadphoneCheck.js and HeadphoneCheck.css](#loading-headphonecheck) (alternatively, use our minified versions hosted on AWS S3)
