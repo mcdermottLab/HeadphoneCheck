@@ -1,3 +1,13 @@
+/***
+BSD 2-Clause License
+
+Copyright (c) 2017, The HeadphoneCheck Authors (see AUTHORS)
+All rights reserved.
+
+Contact Ray Gonzalez raygon@mit.edu or Kevin J. P. Woods kwoods@mit.edu
+=======================================================================
+***/
+
 (function(HeadphoneCheck, $, undefined) {
   /*** PUBLIC CONFIGURATION VARIABLES ***/
 
@@ -56,12 +66,12 @@
 
       if (didPass) {
         $('<div/>', {
-          html: 'Screening task passed.<br/>totalCorrect: ' + getTotalCorrect(results.trialScoreList)
+          html: 'Screening task passed.<br/>totalCorrect: ' + results.totalCorrect
         }).appendTo($('body'));
       }
       else {
         $('<div/>', {
-          html: 'Screening task failed.<br/>totalCorrect: ' + getTotalCorrect(results.trialScoreList)
+          html: 'Screening task failed.<br/>totalCorrect: ' + results.totalCorrect
         }).appendTo($('body'));
       }
 
@@ -101,7 +111,7 @@
 
     $(document).on('hcLoadStimuliSuccess', parseLoadedStimuli);
 
-    if (jsonPath === undefined || jsonPath === 'auto') {
+    if (jsonPath === undefined) {
       var data = {'stimuli':[
                     {'id': 1, 'src': 'https://s3.amazonaws.com/mcd-headphone-check/v1.0/assets/antiphase_HC_ISO.wav', 'correct': '1'},
                     {'id': 2, 'src': 'https://s3.amazonaws.com/mcd-headphone-check/v1.0/assets/antiphase_HC_IOS.wav', 'correct': '2'},
@@ -209,6 +219,10 @@
             }
             teardownHTMLPage();
             var didPass = checkPassFail(HeadphoneCheck.correctThreshold);
+
+            // add some data to the response object
+            headphoneCheckData.totalCorrect = getTotalCorrect(headphoneCheckData.trialScoreList);
+            headphoneCheckData.didPass = didPass;
             $(document).trigger('hcHeadphoneCheckEnd', {'didPass': didPass, 'data': headphoneCheckData});
           }
           else {
@@ -400,7 +414,7 @@
     // pedantic sanity checking HeadphoneCheck.totalTrials
     if (HeadphoneCheck.totalTrials <= 0) throw new Error('HeadphoneCheck.totalTrials must be positive.');
     if (HeadphoneCheck.trialsPerPage <= 0) throw new Error('HeadphoneCheck.trialsPerPage must be positive.');
-    if (HeadphoneCheck.totalTrials < HeadphoneCheck.trialsPerPage) throw new Error('HeadphoneCheck.totalTrials cannot be less than HeadphoneCheck.trialsPerPage.');
+    // if (HeadphoneCheck.totalTrials < HeadphoneCheck.trialsPerPage) throw new Error('HeadphoneCheck.totalTrials cannot be less than HeadphoneCheck.trialsPerPage.');
     if (HeadphoneCheck.correctThreshold > HeadphoneCheck.totalTrials) throw new Error('HeadphoneCheck.correctThreshold cannot be greater than HeadphoneCheck.totalTrials.');
 
     $(document).trigger('hcInitialized');
