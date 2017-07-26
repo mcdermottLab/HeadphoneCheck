@@ -14,16 +14,16 @@ Contact Ray Gonzalez raygon@mit.edu or Kevin J. P. Woods kwoods@mit.edu
   /*** PRIVATE CONFIGURATION VARIABLES ***/
   // NOTE: DON'T CHANGE VALUES HERE. Use a similar config object to
   // override any default values you wish to change.
-  var headphoneCheckDefaultConfig = {jsonPath: undefined,
-                                     totalTrials: 6,
-                                     trialsPerPage: 3,
-                                     correctThreshold: 4/6,
-                                     useSequential: true,
-                                     doShuffleTrials: true,
-                                     sampleWithReplacement: false,
-                                     doCalibration: true,
-                                     debug: false,
-                                    };
+  var headphoneCheckConfig = {jsonPath: undefined,
+                              totalTrials: 6,
+                              trialsPerPage: 3,
+                              correctThreshold: 5/6,
+                              useSequential: true,
+                              doShuffleTrials: true,
+                              sampleWithReplacement: false,
+                              doCalibration: true,
+                              debug: false,
+                             };
 
   var validColor = 'black';
   var warningColor = 'red';
@@ -43,7 +43,7 @@ Contact Ray Gonzalez raygon@mit.edu or Kevin J. P. Woods kwoods@mit.edu
   /**
    * @param  {String} -  URL to json file containing the stimulus data.
    * @param  {Object} - Object containing headphone check configuration
-   * parameters that will override the defaults defined in headphoneCheckDefaultConfig.
+   * parameters that will override the defaults defined in headphoneCheckConfig.
    * @return {undefined}
    */
   HeadphoneCheck.runHeadphoneCheck = function(configData) {
@@ -113,9 +113,9 @@ Contact Ray Gonzalez raygon@mit.edu or Kevin J. P. Woods kwoods@mit.edu
 
     if (jsonPath === undefined) {
       var data = {'stimuli':[
-                    {'id': 1, 'src': 'https://s3.amazonaws.com/mcd-headphone-check/v1.0/assets/antiphase_HC_ISO.wav', 'correct': '1'},
-                    {'id': 2, 'src': 'https://s3.amazonaws.com/mcd-headphone-check/v1.0/assets/antiphase_HC_IOS.wav', 'correct': '2'},
-                    {'id': 3, 'src': 'https://s3.amazonaws.com/mcd-headphone-check/v1.0/assets/antiphase_HC_SOI.wav', 'correct': '3'},
+                    {'id': 1, 'src': 'https://s3.amazonaws.com/mcd-headphone-check/v1.0/assets/antiphase_HC_ISO.wav', 'correct': '2'},
+                    {'id': 2, 'src': 'https://s3.amazonaws.com/mcd-headphone-check/v1.0/assets/antiphase_HC_IOS.wav', 'correct': '3'},
+                    {'id': 3, 'src': 'https://s3.amazonaws.com/mcd-headphone-check/v1.0/assets/antiphase_HC_SOI.wav', 'correct': '1'},
                     {'id': 4, 'src': 'https://s3.amazonaws.com/mcd-headphone-check/v1.0/assets/antiphase_HC_SIO.wav', 'correct': '1'},
                     {'id': 5, 'src': 'https://s3.amazonaws.com/mcd-headphone-check/v1.0/assets/antiphase_HC_OSI.wav', 'correct': '2'},
                     {'id': 6, 'src': 'https://s3.amazonaws.com/mcd-headphone-check/v1.0/assets/antiphase_HC_OIS.wav', 'correct': '3'}
@@ -391,12 +391,12 @@ Contact Ray Gonzalez raygon@mit.edu or Kevin J. P. Woods kwoods@mit.edu
   function parseHeadphoneCheckConfig(configData) {
     // Use configData fields to override defaults
     if (configData === undefined) {
-      $.each(headphoneCheckDefaultConfig, function(index, defaultVal) {
+      $.each(headphoneCheckConfig, function(index, defaultVal) {
         HeadphoneCheck[index] = defaultVal;
       });
     }
     else {
-      $.each(headphoneCheckDefaultConfig, function(index, defaultVal) {
+      $.each(headphoneCheckConfig, function(index, defaultVal) {
         HeadphoneCheck[index] = index in configData ? configData[index] : defaultVal;
       });
     }
