@@ -8,20 +8,12 @@ For code support, bug fixes, or feature requests contact Ray Gonzalez raygon@mit
 ## Overview
 Setting up a headphone check requires the following steps:
 
-1) [Source jQuery](#dependencies)
-2) [Source HeadphoneCheck.js and HeadphoneCheck.css](#loading-headphonecheck) (alternatively, use our minified versions hosted on AWS S3)
-3) [Create a div with the ID *"hc-container"*](#) in the HTML document where you want the headphone check to be rendered
-4) Define what to do after the headphone check completes by attaching a listener to the *hcHeadphoneCheckEnd* event. 
-5) Call *HeadphoneCheck.runHeadphoneCheck();* to begin the headphone check. To customize the headphone check, you can pass in an object of property:value pairs. For instance, a default headphone check without sound calibration can be run with *HeadphoneCheck.runHeadphoneCheck({doCalibration: false});*
+1. [Source jQuery](#dependencies)
+2. [Source HeadphoneCheck.js and HeadphoneCheck.css](#loading-headphonecheck) (alternatively, use our minified versions hosted on AWS S3)
+3. [Create a div with the ID *"hc-container"*](#) in the HTML document where you want the headphone check to be rendered
+4. Define what to do after the headphone check completes by attaching a listener to the *hcHeadphoneCheckEnd* event. 
+5. Call *HeadphoneCheck.runHeadphoneCheck();* to begin the headphone check. To customize the headphone check, you can pass in an object of property:value pairs. For instance, a default headphone check without sound calibration can be run with *HeadphoneCheck.runHeadphoneCheck({doCalibration: false});*
 
-=======
-1) [Source jQuery](#dependencies)
-2) [Source HeadphoneCheck.js and HeadphoneCheck.css](#loading-headphonecheck) (alternatively, use our minified versions hosted on AWS S3)
-3) [Create a div with the ID *"hc-container"*](#) in the HTML document where you want the headphone check to be rendered
-4) Define what to do after the headphone check completes by attaching a listener to the *hcHeadphoneCheckEnd* event. 
-5) Call *HeadphoneCheck.runHeadphoneCheck();* to begin the headphone check. To customize the headphone check, you can pass in an object of property:value pairs. For instance, a default headphone check without sound calibration can be run with *HeadphoneCheck.runHeadphoneCheck({doCalibration: false});*
-
->>>>>>> dd383701459788d0fedfd8ef4e9a329ccac3663b
 A minimal example of a headphone check follows:
 
 ```html
