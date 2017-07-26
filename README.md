@@ -1,4 +1,14 @@
 # HeadphoneCheck
+This code implements a headphone screening task intended to facilitate web-based experiments employing auditory stimuli. The efficacy of this screening task has been demonstrated in [Woods KJP, Siegel MH, Traer J & McDermott JH (2017) Headphone screening to facilitate web-based auditory experiments. *Attention, Perception & Psychophysics*]
+
+As a screening task, it is intended to precede the main task(s), and should be placed at or near the beginning of an online experiment. Participants who pass are allowed through to the remainder of the experiment, but those who do not pass are instead routed to an ending page and must leave the experiment after screening.
+
+The task is a 3-AFC ‘Which tone is quietest?’ task with 200Hz pure tones. Unbeknownst to the participant, a random one of the tones is in antiphase across the stereo channels, resulting in heavy attenuation only when heard over loudspeakers (but not over headphones). This results in very poor performance if the task is attempted without headphones. 
+
+Six trials of this task, passing participants with >=5 trials correct, appears sufficient to detect if a participant is using headphones or not (Woods et al. 2017), at least to a degree of accuracy acceptable for most practical purposes. Increasing the number of trials should only improve the accuracy of the screening (at the cost of participant time/pay). Decreasing the number of trials is *highly discouraged*! 
+
+
+
 Headphone check code
 
 This can be tested locally by starting a HTTP server (eg. python simple HTTP server: run 'python -m SimpleHTTPServer 8000'). You can access a demo page at "localhost:8000/HeadphoneCheck.html"
