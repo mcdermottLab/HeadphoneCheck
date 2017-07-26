@@ -1,56 +1,47 @@
-TODO
-
-HeadphoneCheck.js:
-  - two exposed variables: number of examples that you want to show up on a given page, and debug flag
-  - two exposed functions: one for loading stimuli from a json file, one for rendering an HTML page
-  - call the load examples function and then render the first page of the headphone check (with #examplesPerPage on this page)
-
-  -page rendering calls a function which renders individual stimuli on the page
-
 TODO:
+-----
+  - figure out how to handle css styles properly
+  - Put example sounds on AWS S3
+  - readme
+  - check browser compatibility
+  - grunt project and minify
+
+DONE:
+-----
 x  - when browser is thin (say half of screen size on laptop), the response text
     flows onto multiple lines for some but not all responses. it should be the
     same for all.
-x  - shouldn't allow playing the next sound before responding to the current one
-
-x  - How to check correctness?: naively
-x  - API
-  - add events
-x  - document
-  -readme
-x  -errors on dumb
-x -calibration
-x  -ajax fetch to async
-  - check browser compatibility
-  - branch for progress caching, then remove progress caching and merge to master
-
-  # 6-15-2017
-x  - calibration sound should be configurable
-  - Put example sounds on AWS S3
-x  - Sample with replacement
-x  - handle ajax error
-x  - random with replacement
-
-  - fire events on all major state changes (in parenthesis means not required)
+x - shouldn't allow playing the next sound before responding to the current one
+x - How to check correctness?: naively
+x - API
+x - add events
+x - document
+x - errors on dumb
+x - calibration
+x - ajax fetch to async
+x - branch for progress caching, then remove progress caching and merge to master
+x - calibration sound should be configurable
+x - Sample with replacement
+x - handle ajax error
+x - random with replacement
+x - fire events on all major state changes (in parenthesis means not required)
 x    + overall begin/end
 x    + stim json success/fail/done
 x    + calibration begin/end
 x    + headphone check begin/end
-    + (renderHTMLPage with pageNum data)
-    + (per trial rendering seems like overkill)
-
 x - fine grained detail of response per trial: implemented per trial score
-  - local storage progress caching
-    + we need to track per trial responses and playback status (probably easier than infering from disabled button states)
-
-  - figure out how to handle css styles properly
-  - refactor all callback and event binding to single function? it's pretty messy as it is
 x - do we need a more fine grained warning/feedback system?: kind of implemented this for sequential trials
   - check playback counters if `requirePlayback` is false
-  - support for multiple audio sources
-  - fix audio source type
 x - json schema -> what if IDs aren't unique?: shouldn't matter, each trials has a unique index prefix
 x - render finished page?: this is the user's responsibility
 
-
+DEFERRED:
+---------
+DEFER  - support for multiple audio sources
+DEFER  - fix audio source type
+DEFER    + Fire event on (renderHTMLPage with pageNum data)
+DEFER    + Fire event on (per trial rendering seems like overkill)
+DEFER  - local storage progress caching
+DEFER    + we need to track per trial responses and playback status (probably easier than infering from disabled button states)
+DEFER - refactor all callback and event binding to single function? it's pretty messy as it is
 

@@ -4,7 +4,7 @@
   /*** PRIVATE CONFIGURATION VARIABLES ***/
   // NOTE: DON'T CHANGE VALUES HERE. Use a similar config object to
   // override any default values you wish to change.
-  var headphoneCheckDefaultConfig = {jsonPath: 'http://mcdermottlab.mit.edu/publicHeadphoneCheck/headphoneCheckDefaultStimuli.json',
+  var headphoneCheckDefaultConfig = {jsonPath: undefined,
                                      totalTrials: 6,
                                      trialsPerPage: 3,
                                      correctThreshold: 4,
@@ -80,34 +80,58 @@
    * from the URL.
    */
   HeadphoneCheck.loadStimuli = function (jsonPath) {
-    $.ajax({
-        dataType: 'json',
-        url: jsonPath,
-        async: true,
-        success: function (data, status, error) {
-          $(document).trigger('hcLoadStimuliSuccess', {'data': data, 'status': status, 'error': error});
-          headphoneCheckData.jsonData = data;
-          if (HeadphoneCheck.doShuffleTrials) {
-            shuffleTrials(data.stimuli, HeadphoneCheck.totalTrials, HeadphoneCheck.sampleWithReplacement);
+    function parseLoadedStimuli(event, data) {
+      var trialData = data.data;
+      // debugger
+      headphoneCheckData.jsonData = trialData;
+      if (HeadphoneCheck.doShuffleTrials) {
+        shuffleTrials(trialData.stimuli, HeadphoneCheck.totalTrials, HeadphoneCheck.sampleWithReplacement);
+      }
+      if (HeadphoneCheck.doCalibration) {
+        headphoneCheckData.calibration = trialData.calibration;
+      }
+      headphoneCheckData.lastPage = Math.ceil(headphoneCheckData.stimDataList.length / HeadphoneCheck.trialsPerPage);
+      if (HeadphoneCheck.doCalibration) {
+        $(document).trigger('hcCalibrationStart');
+      }
+      else {
+        $(document).trigger('hcHeadphoneCheckStart');
+      }
+    }
+
+    $(document).on('hcLoadStimuliSuccess', parseLoadedStimuli);
+
+    if (jsonPath === undefined || jsonPath === 'auto') {
+      var data = {'stimuli':[
+                    {'id': 1, 'src': 'https://s3.amazonaws.com/mcd-headphone-check/v1.0/assets/antiphase_HC_ISO.wav', 'correct': '1'},
+                    {'id': 2, 'src': 'https://s3.amazonaws.com/mcd-headphone-check/v1.0/assets/antiphase_HC_IOS.wav', 'correct': '2'},
+                    {'id': 3, 'src': 'https://s3.amazonaws.com/mcd-headphone-check/v1.0/assets/antiphase_HC_SOI.wav', 'correct': '3'},
+                    {'id': 4, 'src': 'https://s3.amazonaws.com/mcd-headphone-check/v1.0/assets/antiphase_HC_SIO.wav', 'correct': '1'},
+                    {'id': 5, 'src': 'https://s3.amazonaws.com/mcd-headphone-check/v1.0/assets/antiphase_HC_OSI.wav', 'correct': '2'},
+                    {'id': 6, 'src': 'https://s3.amazonaws.com/mcd-headphone-check/v1.0/assets/antiphase_HC_OIS.wav', 'correct': '3'}
+                  ],
+        'calibration': {'src': 'https://s3.amazonaws.com/mcd-headphone-check/v1.0/assets/noise_calib_stim.wav'}
+      };
+      var status = 'loadedDefault';
+      var error;
+      $(document).trigger('hcLoadStimuliSuccess', {'data': data, 'status': status, 'error': error});
+    }
+    else {
+      $.ajax({
+          dataType: 'json',
+          url: jsonPath,
+          async: true,
+          success: function (data, status, error) {
+            $(document).trigger('hcLoadStimuliSuccess', {'data': data, 'status': status, 'error': error});
+          },
+          error: function (data, status, error) {
+            $(document).trigger('hcLoadStimuliFail', {'data': data, 'status': status, 'error': error});
+          },
+          complete: function (data, status, error) {
+            $(document).trigger('hcLoadStimuliDone', {'data': data, 'status': status, 'error': error});
           }
-          if (HeadphoneCheck.doCalibration) {
-            headphoneCheckData.calibration = data.calibration;
-          }
-          headphoneCheckData.lastPage = Math.ceil(headphoneCheckData.stimDataList.length / HeadphoneCheck.trialsPerPage);
-          if (HeadphoneCheck.doCalibration) {
-            $(document).trigger('hcCalibrationStart');
-          }
-          else {
-            $(document).trigger('hcHeadphoneCheckStart');
-          }
-        },
-        error: function (data, status, error) {
-          $(document).trigger('hcLoadStimuliFail', {'data': data, 'status': status, 'error': error});
-        },
-        complete: function (data, status, error) {
-          $(document).trigger('hcLoadStimuliDone', {'data': data, 'status': status, 'error': error});
-        }
-    });
+      });
+    }
   };
 
   /**
@@ -352,9 +376,16 @@
 
   function parseHeadphoneCheckConfig(configData) {
     // Use configData fields to override defaults
-    $.each(headphoneCheckDefaultConfig, function(index, defaultVal) {
-      HeadphoneCheck[index] = index in configData ? configData[index] : defaultVal;
-    });
+    if (configData === undefined) {
+      $.each(headphoneCheckDefaultConfig, function(index, defaultVal) {
+        HeadphoneCheck[index] = defaultVal;
+      });
+    }
+    else {
+      $.each(headphoneCheckDefaultConfig, function(index, defaultVal) {
+        HeadphoneCheck[index] = index in configData ? configData[index] : defaultVal;
+      });
+    }
   }
 
   /**
@@ -612,26 +643,3 @@
   }
 
 }( window.HeadphoneCheck = window.HeadphoneCheck || {}, jQuery));
-
-
-
-/***********************************/
-/******** EXAMPLE USER CODE ********/
-/***********************************/
-$(document).ready(function() {
-  // $(document).on('hcLoadStimuliSuccess', function(event, data) {
-  //   alert(event.type);
-  // });
-
-  var headphoneCheckConfig = {jsonPath: 'headphoneCheckDefaultStimuli.json',
-                               totalTrials: 3,
-                               trialsPerPage: 2,
-                               correctThreshold: 1,
-                               useSequential: true,
-                               doShuffleTrials: true,
-                               sampleWithReplacement: true,
-                               doCalibration: false,
-                               debug: false,
-                             };
-  HeadphoneCheck.runHeadphoneCheck(headphoneCheckConfig);
-});
