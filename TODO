@@ -1,13 +1,13 @@
 TODO:
 -----
   - figure out how to handle css styles properly
-  - Put example sounds on AWS S3
   - readme
   - check browser compatibility
-  - grunt project and minify
 
 DONE:
 -----
+x  - Put example sounds on AWS S3
+x  - grunt project and minify
 x  - when browser is thin (say half of screen size on laptop), the response text
     flows onto multiple lines for some but not all responses. it should be the
     same for all.

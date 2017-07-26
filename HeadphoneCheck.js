@@ -7,7 +7,7 @@
   var headphoneCheckDefaultConfig = {jsonPath: undefined,
                                      totalTrials: 6,
                                      trialsPerPage: 3,
-                                     correctThreshold: 4,
+                                     correctThreshold: 4/6,
                                      useSequential: true,
                                      doShuffleTrials: true,
                                      sampleWithReplacement: false,
@@ -386,6 +386,9 @@
         HeadphoneCheck[index] = index in configData ? configData[index] : defaultVal;
       });
     }
+    // normalize correctThreshold to a percentage
+    if (HeadphoneCheck.correctThreshold < 0) throw new Error('HeadphoneCheck.correctThreshold must be positive.');
+    if (HeadphoneCheck.correctThreshold > 1) HeadphoneCheck.correctThreshold /= HeadphoneCheck.stimIDList.length;
   }
 
   /**
@@ -515,7 +518,8 @@
    */
   function checkPassFail(correctThreshold) {
     var totalCorrect = getTotalCorrect(headphoneCheckData.trialScoreList);
-    return totalCorrect >= correctThreshold;
+    var totalCorrectPercentage = totalCorrect / headphoneCheckData.stimIDList.length;
+    return totalCorrectPercentage >= correctThreshold;
   }
 
   /**
