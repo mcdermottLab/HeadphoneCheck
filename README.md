@@ -14,7 +14,7 @@ Six trials of this task, passing participants with >=5 trials correct, appears s
 This can be tested locally by starting a HTTP server (eg. python simple HTTP server: run 'python -m SimpleHTTPServer 8000'). 
 You can access a demo page at "localhost:8000/HeadphoneCheck.html"
 
-For code support, bug fixes, or feature requests contact Ray Gonzalez raygon@mit.edu. 
+For code support, bug fixes, or feature requests contact Ray Gonzalez raygon@mit.edu.  
 For other issues, contact Kevin J. P. Woods kwoods@mit.edu.
 
 ## Code Overview
