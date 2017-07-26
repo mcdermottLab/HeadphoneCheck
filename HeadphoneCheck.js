@@ -9,12 +9,24 @@ Contact Ray Gonzalez raygon@mit.edu or Kevin J. P. Woods kwoods@mit.edu
 ***/
 
 (function(HeadphoneCheck, $, undefined) {
-  /*** PUBLIC CONFIGURATION VARIABLES ***/
-
   /*** PRIVATE CONFIGURATION VARIABLES ***/
+  var validColor = 'black';
+  var warningColor = 'red';
+  var requirePlayback = true;
+  var st_isPlaying = false;
+  var headphoneCheckData = {pageNum: 0,
+                            stimIDList: [],
+                            stimDataList: [],
+                            trialScoreList: [],
+                            responseList: [],
+                            calibration: [],
+                            jsonData: undefined,
+                            lastPage: undefined,
+                           };
+  var headphoneCheckConfig = {};
   // NOTE: DON'T CHANGE VALUES HERE. Use a similar config object to
   // override any default values you wish to change.
-  var headphoneCheckConfig = {jsonPath: undefined,
+  var headphoneCheckDefaultConfig = {jsonPath: undefined,
                               totalTrials: 6,
                               trialsPerPage: 3,
                               correctThreshold: 5/6,
@@ -25,25 +37,11 @@ Contact Ray Gonzalez raygon@mit.edu or Kevin J. P. Woods kwoods@mit.edu
                               debug: false,
                              };
 
-  var validColor = 'black';
-  var warningColor = 'red';
-  var requirePlayback = true;
-  var headphoneCheckData = {pageNum: 0,
-                            stimIDList: [],
-                            stimDataList: [],
-                            trialScoreList: [],
-                            responseList: [],
-                            calibration: [],
-                            jsonData: undefined,
-                            lastPage: undefined,
-                           };
-  var st_isPlaying = false;
-
   /*** PUBLIC FUNCTIONS ***/
   /**
    * @param  {String} -  URL to json file containing the stimulus data.
    * @param  {Object} - Object containing headphone check configuration
-   * parameters that will override the defaults defined in headphoneCheckConfig.
+   * parameters that will override the defaults defined in headphoneCheckDefaultConfig.
    * @return {undefined}
    */
   HeadphoneCheck.runHeadphoneCheck = function(configData) {
@@ -62,6 +60,7 @@ Contact Ray Gonzalez raygon@mit.edu or Kevin J. P. Woods kwoods@mit.edu
     });
     $(document).on('hcHeadphoneCheckEnd', function(event, data) {
       var results = data.data;
+      var config = data.config;
       var didPass = data.didPass;
 
       if (didPass) {
@@ -77,7 +76,7 @@ Contact Ray Gonzalez raygon@mit.edu or Kevin J. P. Woods kwoods@mit.edu
 
     });
 
-    HeadphoneCheck.loadStimuli(HeadphoneCheck.jsonPath);
+    HeadphoneCheck.loadStimuli(headphoneCheckConfig.jsonPath);
   };
 
   /**
@@ -94,14 +93,14 @@ Contact Ray Gonzalez raygon@mit.edu or Kevin J. P. Woods kwoods@mit.edu
       var trialData = data.data;
       // debugger
       headphoneCheckData.jsonData = trialData;
-      if (HeadphoneCheck.doShuffleTrials) {
-        shuffleTrials(trialData.stimuli, HeadphoneCheck.totalTrials, HeadphoneCheck.sampleWithReplacement);
+      if (headphoneCheckConfig.doShuffleTrials) {
+        shuffleTrials(trialData.stimuli, headphoneCheckConfig.totalTrials, headphoneCheckConfig.sampleWithReplacement);
       }
-      if (HeadphoneCheck.doCalibration) {
+      if (headphoneCheckConfig.doCalibration) {
         headphoneCheckData.calibration = trialData.calibration;
       }
-      headphoneCheckData.lastPage = Math.ceil(headphoneCheckData.stimDataList.length / HeadphoneCheck.trialsPerPage);
-      if (HeadphoneCheck.doCalibration) {
+      headphoneCheckData.lastPage = Math.ceil(headphoneCheckData.stimDataList.length / headphoneCheckConfig.trialsPerPage);
+      if (headphoneCheckConfig.doCalibration) {
         $(document).trigger('hcCalibrationStart');
       }
       else {
@@ -165,12 +164,12 @@ Contact Ray Gonzalez raygon@mit.edu or Kevin J. P. Woods kwoods@mit.edu
       text: 'Test sounds can only be played once!'
     }).appendTo($('#hc-container'));
 
-    if (HeadphoneCheck.debug) console.log(headphoneCheckData);
+    if (headphoneCheckConfig.debug) console.log(headphoneCheckData);
 
     //get the stimuli to display on this page
-    for (i = 0; i < HeadphoneCheck.trialsPerPage; i++) {
-      var trialInd = headphoneCheckData.pageNum * HeadphoneCheck.trialsPerPage + i;
-      if (trialInd < HeadphoneCheck.totalTrials) {
+    for (i = 0; i < headphoneCheckConfig.trialsPerPage; i++) {
+      var trialInd = headphoneCheckData.pageNum * headphoneCheckConfig.trialsPerPage + i;
+      if (trialInd < headphoneCheckConfig.totalTrials) {
         // prefix the stim id with the temporary (page) trial index, allows for duplicate trials
         var stimData = headphoneCheckData.stimDataList[trialInd];
         var stimID = headphoneCheckData.stimIDList[trialInd];
@@ -204,8 +203,8 @@ Contact Ray Gonzalez raygon@mit.edu or Kevin J. P. Woods kwoods@mit.edu
       text: 'Continue',
       click: function () {
         var canContinue = checkCanContinue();
-        for (stimID = 0; stimID < HeadphoneCheck.trialsPerPage; stimID++) {
-          var trialInd = headphoneCheckData.pageNum * HeadphoneCheck.trialsPerPage + stimID;
+        for (stimID = 0; stimID < headphoneCheckConfig.trialsPerPage; stimID++) {
+          var trialInd = headphoneCheckData.pageNum * headphoneCheckConfig.trialsPerPage + stimID;
           var response = getResponseFromRadioButtonGroup(headphoneCheckData.stimIDList[trialInd]);
           scoreTrial(trialInd, headphoneCheckData.stimDataList[trialInd], response);
         }
@@ -213,17 +212,17 @@ Contact Ray Gonzalez raygon@mit.edu or Kevin J. P. Woods kwoods@mit.edu
         if (canContinue) { // Advance the page
           if (headphoneCheckData.pageNum == headphoneCheckData.lastPage - 1) {// TODO: -1 for indexing; make indexing consistent
             // handle edge case of first page is last page
-            if (HeadphoneCheck.totalTrials == 1 && headphoneCheckData.trialScoreList[0] === undefined) {
+            if (headphoneCheckConfig.totalTrials == 1 && headphoneCheckData.trialScoreList[0] === undefined) {
               renderResponseWarnings();
               return;
             }
             teardownHTMLPage();
-            var didPass = checkPassFail(HeadphoneCheck.correctThreshold);
+            var didPass = checkPassFail(headphoneCheckConfig.correctThreshold);
 
             // add some data to the response object
             headphoneCheckData.totalCorrect = getTotalCorrect(headphoneCheckData.trialScoreList);
             headphoneCheckData.didPass = didPass;
-            $(document).trigger('hcHeadphoneCheckEnd', {'didPass': didPass, 'data': headphoneCheckData});
+            $(document).trigger('hcHeadphoneCheckEnd', {'didPass': didPass, 'data': headphoneCheckData, 'config': headphoneCheckConfig});
           }
           else {
             teardownHTMLPage();
@@ -316,7 +315,7 @@ Contact Ray Gonzalez raygon@mit.edu or Kevin J. P. Woods kwoods@mit.edu
    * @return {undefined}
    */
   function renderHeadphoneCheckTrial(stimDiv, stimID, stimFile) {
-    if (HeadphoneCheck.debug) console.log('--->' +' '+ stimDiv + ' ' + stimID + ', ' + stimFile);
+    if (headphoneCheckConfig.debug) console.log('--->' +' '+ stimDiv + ' ' + stimID + ', ' + stimFile);
     if (stimFile === undefined) return;
     var divID = 'hc-stim-' + stimID;
     $('<div/>', {id: divID, class: 'hc-trial-div'}).appendTo(('#' + stimDiv));
@@ -327,7 +326,7 @@ Contact Ray Gonzalez raygon@mit.edu or Kevin J. P. Woods kwoods@mit.edu
         src: stimFile
       }).appendTo($('#' + divID));
 
-    if (HeadphoneCheck.debug) {
+    if (headphoneCheckConfig.debug) {
       $('<div/>', {
           text: 'Trial ID: ' + stimID
       }).appendTo($('#' + divID));
@@ -391,18 +390,18 @@ Contact Ray Gonzalez raygon@mit.edu or Kevin J. P. Woods kwoods@mit.edu
   function parseHeadphoneCheckConfig(configData) {
     // Use configData fields to override defaults
     if (configData === undefined) {
-      $.each(headphoneCheckConfig, function(index, defaultVal) {
-        HeadphoneCheck[index] = defaultVal;
+      $.each(headphoneCheckDefaultConfig, function(index, defaultVal) {
+        headphoneCheckConfig[index] = defaultVal;
       });
     }
     else {
-      $.each(headphoneCheckConfig, function(index, defaultVal) {
-        HeadphoneCheck[index] = index in configData ? configData[index] : defaultVal;
+      $.each(headphoneCheckDefaultConfig, function(index, defaultVal) {
+        headphoneCheckConfig[index] = index in configData ? configData[index] : defaultVal;
       });
     }
     // normalize correctThreshold to a percentage
-    if (HeadphoneCheck.correctThreshold < 0) throw new Error('HeadphoneCheck.correctThreshold must be positive.');
-    if (HeadphoneCheck.correctThreshold > 1) HeadphoneCheck.correctThreshold /= HeadphoneCheck.stimIDList.length;
+    if (headphoneCheckConfig.correctThreshold < 0) throw new Error('headphoneCheckConfig.correctThreshold must be positive.');
+    if (headphoneCheckConfig.correctThreshold > 1) headphoneCheckConfig.correctThreshold /= headphoneCheckConfig.stimIDList.length;
   }
 
   /**
@@ -411,11 +410,11 @@ Contact Ray Gonzalez raygon@mit.edu or Kevin J. P. Woods kwoods@mit.edu
    * @return {undefined}
    */
   function setupHeadphoneCheck() {
-    // pedantic sanity checking HeadphoneCheck.totalTrials
-    if (HeadphoneCheck.totalTrials <= 0) throw new Error('HeadphoneCheck.totalTrials must be positive.');
-    if (HeadphoneCheck.trialsPerPage <= 0) throw new Error('HeadphoneCheck.trialsPerPage must be positive.');
-    // if (HeadphoneCheck.totalTrials < HeadphoneCheck.trialsPerPage) throw new Error('HeadphoneCheck.totalTrials cannot be less than HeadphoneCheck.trialsPerPage.');
-    if (HeadphoneCheck.correctThreshold > HeadphoneCheck.totalTrials) throw new Error('HeadphoneCheck.correctThreshold cannot be greater than HeadphoneCheck.totalTrials.');
+    // pedantic sanity checking headphoneCheckConfig.totalTrials
+    if (headphoneCheckConfig.totalTrials <= 0) throw new Error('headphoneCheckConfig.totalTrials must be positive.');
+    if (headphoneCheckConfig.trialsPerPage <= 0) throw new Error('headphoneCheckConfig.trialsPerPage must be positive.');
+    // if (headphoneCheckConfig.totalTrials < headphoneCheckConfig.trialsPerPage) throw new Error('headphoneCheckConfig.totalTrials cannot be less than headphoneCheckConfig.trialsPerPage.');
+    if (headphoneCheckConfig.correctThreshold > headphoneCheckConfig.totalTrials) throw new Error('headphoneCheckConfig.correctThreshold cannot be greater than headphoneCheckConfig.totalTrials.');
 
     $(document).trigger('hcInitialized');
   }
@@ -430,7 +429,7 @@ Contact Ray Gonzalez raygon@mit.edu or Kevin J. P. Woods kwoods@mit.edu
   function playStim(stimID) {
     var trialID = /trial(\d+)/.exec(stimID)[1]; // this is brittle
     var previousTrialID = trialID - 1;
-    if (HeadphoneCheck.useSequential && previousTrialID >= 0) {
+    if (headphoneCheckConfig.useSequential && previousTrialID >= 0) {
       var response = getResponseFromRadioButtonGroup(headphoneCheckData.stimIDList[previousTrialID]);
       if (response === undefined && headphoneCheckData.trialScoreList[previousTrialID] === undefined) {
         $('#hc-stim-' + headphoneCheckData.stimIDList[previousTrialID]).css('border-color', warningColor);

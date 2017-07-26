@@ -1,11 +1,16 @@
 TODO:
 -----
-  - figure out how to handle css styles properly
   - readme
   - check browser compatibility
+  - update package.json github
+  - move to public github
+  - demos
+  - rename to HeadphoneCheck
+  - add authors to every file
 
 DONE:
 -----
+x  - defaults
 x  - Put example sounds on AWS S3
 x  - grunt project and minify
 x  - when browser is thin (say half of screen size on laptop), the response text
@@ -37,11 +42,12 @@ x - render finished page?: this is the user's responsibility
 
 DEFERRED:
 ---------
+DEFER  - figure out how to handle css styles properly
 DEFER  - support for multiple audio sources
 DEFER  - fix audio source type
 DEFER    + Fire event on (renderHTMLPage with pageNum data)
 DEFER    + Fire event on (per trial rendering seems like overkill)
 DEFER  - local storage progress caching
-DEFER    + we need to track per trial responses and playback status (probably easier than infering from disabled button states)
+DEFER    + we need to track per trial responses and playback status (probably easier than inferring from disabled button states)
 DEFER - refactor all callback and event binding to single function? it's pretty messy as it is
 

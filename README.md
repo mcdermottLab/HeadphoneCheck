@@ -117,6 +117,7 @@ The *hcHeadphoneCheckEnd* event will pass two arguments to the callback function
 + *data*: An Object that contains the following fields:
   + *didPass*: Boolean indicating if the headphone check was passed or failed, i.e., if the percentage of correct responses is at least as large as the correct threshold.
   + *data*: Object containing the responses and related data for this headphone check.
+  + *config*: Object containing the configuration settings for this headphone check.
 
 **Bind callback to alert user if headphone check was passed or failed:**
 ```javascript
