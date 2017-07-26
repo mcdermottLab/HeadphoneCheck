@@ -1,0 +1,15 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <!-- Import jQuery from Google CDN -->
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+    <!-- Import HeadphoneCheck.js (minified) from McDermott S3 server -->
+    <script type="text/javascript" src="https://s3.amazonaws.com/mcd-headphone-check/v1.0/src/HeadphoneCheck.min.js"></script>
+    <!-- Import HeadphoneCheck.css from McDermott S3 server -->
+    <link rel="stylesheet" type="text/css" href="https://s3.amazonaws.com/mcd-headphone-check/v1.0/src/HeadphoneCheckStyle.css">
+  </head>
+  <!-- Run the headphone check when the page finishes loading -->
+  <body onload="HeadphoneCheck.runHeadphoneCheck();">
+    <div id="hc-container"></div>
+  </body>
+</html>

@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <!-- Import jQuery from Google CDN -->
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+    <!-- Import HeadphoneCheck.js  -->
+    <script type="text/javascript" src="HeadphoneCheck.js"></script>
+    <!-- Import HeadphoneCheck.css -->
+    <link rel="stylesheet" type="text/css" href="HeadphoneCheckStyle.css">
+    <script>
+      $(document).ready(function() {
+        $(document).on('hcHeadphoneCheckEnd', function(event, data) {
+          // alert(event.type);
+          debugger
+        });
+
+        var headphoneCheckConfig = {
+                                      jsonPath: 'headphoneCheckDefaultStimuli.json',
+                                      totalTrials: 3,
+                                      trialsPerPage: 2,
+                                      correctThreshold: 1/3,
+                                      useSequential: true,
+                                      doShuffleTrials: true,
+                                      sampleWithReplacement: true,
+                                      doCalibration: false,
+                                      debug: false,
+                                   };
+        HeadphoneCheck.runHeadphoneCheck(headphoneCheckConfig);
+      });
+    </script>
+  </head>
+  <body>
+    <div id="hc-container"></div>
+  </body>
+</html>

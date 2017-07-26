@@ -1,0 +1,11 @@
+{
+  "stimuli":[
+              {"id":1, "src": "assets/antiphase_HC_ISO.wav", "correct":"1"},
+              {"id":2, "src": "assets/antiphase_HC_IOS.wav", "correct":"2"},
+              {"id":3, "src": "assets/antiphase_HC_SOI.wav", "correct":"3"},
+              {"id":4, "src": "assets/antiphase_HC_SIO.wav", "correct":"1"},
+              {"id":5, "src": "assets/antiphase_HC_OSI.wav", "correct":"2"},
+              {"id":6, "src": "assets/antiphase_HC_OIS.wav", "correct":"3"}
+            ],
+  "calibration": {"src": "assets/noise_calib_stim.wav"}
+}
