@@ -22,6 +22,8 @@ Contact Ray Gonzalez raygon@mit.edu or Kevin J. P. Woods kwoods@mit.edu
                             calibration: [],
                             jsonData: undefined,
                             lastPage: undefined,
+                            totalCorrect: undefined,
+                            didPass: undefined,
                            };
   var headphoneCheckConfig = {};
   // NOTE: DON'T CHANGE VALUES HERE. Use a similar config object to
@@ -32,7 +34,7 @@ Contact Ray Gonzalez raygon@mit.edu or Kevin J. P. Woods kwoods@mit.edu
                               correctThreshold: 5/6,
                               useSequential: true,
                               doShuffleTrials: true,
-                              sampleWithReplacement: false,
+                              sampleWithReplacement: true,
                               doCalibration: true,
                               debug: false,
                              };
@@ -52,7 +54,7 @@ Contact Ray Gonzalez raygon@mit.edu or Kevin J. P. Woods kwoods@mit.edu
       HeadphoneCheck.renderHeadphoneCheckCalibration();
     });
     $(document).on('hcCalibrationEnd', function(event, data) {
-      $(document).trigger('hcHeadphoneCheckStart');
+      $(document).trigger('hcHeadphoneCheckStart', {'data': headphoneCheckData, 'config': headphoneCheckConfig});
     });
 
     $(document).on('hcHeadphoneCheckStart', function(event, data) {
@@ -84,10 +86,10 @@ Contact Ray Gonzalez raygon@mit.edu or Kevin J. P. Woods kwoods@mit.edu
       }
       headphoneCheckData.lastPage = Math.ceil(headphoneCheckData.stimDataList.length / headphoneCheckConfig.trialsPerPage);
       if (headphoneCheckConfig.doCalibration) {
-        $(document).trigger('hcCalibrationStart');
+        $(document).trigger('hcCalibrationStart', {'data': headphoneCheckData, 'config': headphoneCheckConfig});
       }
       else {
-        $(document).trigger('hcHeadphoneCheckStart');
+        $(document).trigger('hcHeadphoneCheckStart', {'data': headphoneCheckData, 'config': headphoneCheckConfig});
       }
     }
 
@@ -106,7 +108,7 @@ Contact Ray Gonzalez raygon@mit.edu or Kevin J. P. Woods kwoods@mit.edu
       };
       var status = 'loadedDefault';
       var error;
-      $(document).trigger('hcLoadStimuliSuccess', {'data': data, 'status': status, 'error': error});
+      $(document).trigger('hcLoadStimuliSuccess', {'data': data, 'config': headphoneCheckConfig, 'status': status, 'error': error});
     }
     else {
       $.ajax({
@@ -114,13 +116,13 @@ Contact Ray Gonzalez raygon@mit.edu or Kevin J. P. Woods kwoods@mit.edu
           url: jsonPath,
           async: true,
           success: function (data, status, error) {
-            $(document).trigger('hcLoadStimuliSuccess', {'data': data, 'status': status, 'error': error});
+            $(document).trigger('hcLoadStimuliSuccess', {'data': data, 'config': headphoneCheckConfig, 'status': status, 'error': error});
           },
           error: function (data, status, error) {
-            $(document).trigger('hcLoadStimuliFail', {'data': data, 'status': status, 'error': error});
+            $(document).trigger('hcLoadStimuliFail', {'data': data, 'config': headphoneCheckConfig, 'status': status, 'error': error});
           },
           complete: function (data, status, error) {
-            $(document).trigger('hcLoadStimuliDone', {'data': data, 'status': status, 'error': error});
+            $(document).trigger('hcLoadStimuliDone', {'data': data, 'config': headphoneCheckConfig, 'status': status, 'error': error});
           }
       });
     }
@@ -280,8 +282,9 @@ Contact Ray Gonzalez raygon@mit.edu or Kevin J. P. Woods kwoods@mit.edu
       disabled: true,
       text: 'Continue',
       click: function () {
+        st_isPlaying = false;
         teardownHTMLPage();
-        $(document).trigger('hcCalibrationEnd');
+        $(document).trigger('hcCalibrationEnd', {'data': headphoneCheckData, 'config': headphoneCheckConfig});
       }
     }).appendTo($('#hc-container'));
   };
@@ -399,7 +402,7 @@ Contact Ray Gonzalez raygon@mit.edu or Kevin J. P. Woods kwoods@mit.edu
     // if (headphoneCheckConfig.totalTrials < headphoneCheckConfig.trialsPerPage) throw new Error('headphoneCheckConfig.totalTrials cannot be less than headphoneCheckConfig.trialsPerPage.');
     if (headphoneCheckConfig.correctThreshold > headphoneCheckConfig.totalTrials) throw new Error('headphoneCheckConfig.correctThreshold cannot be greater than headphoneCheckConfig.totalTrials.');
 
-    $(document).trigger('hcInitialized');
+    $(document).trigger('hcInitialized', {'data': headphoneCheckData, 'config': headphoneCheckConfig});
   }
 
   /**

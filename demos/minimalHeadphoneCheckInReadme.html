@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <!-- 1) Import jQuery from Google CDN -->
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.8.3/jquery.min.js"></script>
+    <!-- 2) Import HeadphoneCheck.js (minified) from McDermott S3 server -->
+    <script type="text/javascript" src="https://s3.amazonaws.com/mcd-headphone-check/v1.0/src/HeadphoneCheck.min.js"></script>
+    <!-- 2) Import HeadphoneCheck.css from McDermott S3 server -->
+    <link rel="stylesheet" type="text/css" href="https://s3.amazonaws.com/mcd-headphone-check/v1.0/src/HeadphoneCheckStyle.css">
+
+    <script>
+      $(document).ready(function() {
+        /* 4) Define what to do when the headphone check finishes */
+        $(document).on('hcHeadphoneCheckEnd', function(event, data) {
+          var headphoneCheckDidPass = data.didPass;
+          var headphoneCheckData = data.data;
+          var didPassMessage = headphoneCheckDidPass ? 'passed' : 'failed';
+          alert('Screening task ' + '.');
+        });
+
+        var headphoneCheckConfig = {};
+        /* 5) Run the headphone check, with customization options defined in headphoneCheckConfig */
+        HeadphoneCheck.runHeadphoneCheck(headphoneCheckConfig);
+      });
+    </script>
+  </head>
+  <body>
+    <!-- 3) Create a container div for the headphone check -->
+    <div id="hc-container"></div>
+  </body>
+</html>

@@ -8,10 +8,10 @@
   },
   "repository": {
     "type": "git",
-    "url": "git@github.mit.edu:raygon/headphone_check.git"
+    "url": "https://github.com/mcdermottLab/HeadphoneCheck.git"
   },
-  "author": "",
-  "license": "Apache-2.0",
+  "author": "Ray Gonzalez",
+  "license": "BSD 2-Clause",
   "devDependencies": {
     "grunt": "~0.4.5",
     "grunt-contrib-jshint": "^1.1.0",

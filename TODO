@@ -1,13 +1,16 @@
 TODO:
 -----
-  - readme
   - check browser compatibility
-  - update package.json github
-  - move to public github
-  - rename to HeadphoneCheck
+  - document public API
+  - documentation?
 
 DONE:
 -----
+x - document events
+x  - move to public github
+x  - rename to HeadphoneCheck
+x  - update package.json github
+x  - readme
 x  - demos
 x  - add authors to every file
 x  - defaults
