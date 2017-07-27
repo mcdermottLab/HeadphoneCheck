@@ -4,12 +4,12 @@ TODO:
   - check browser compatibility
   - update package.json github
   - move to public github
-  - demos
   - rename to HeadphoneCheck
-  - add authors to every file
 
 DONE:
 -----
+x  - demos
+x  - add authors to every file
 x  - defaults
 x  - Put example sounds on AWS S3
 x  - grunt project and minify

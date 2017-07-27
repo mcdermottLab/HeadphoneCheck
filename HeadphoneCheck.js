@@ -58,24 +58,7 @@ Contact Ray Gonzalez raygon@mit.edu or Kevin J. P. Woods kwoods@mit.edu
     $(document).on('hcHeadphoneCheckStart', function(event, data) {
       HeadphoneCheck.renderHeadphoneCheckPage();
     });
-    $(document).on('hcHeadphoneCheckEnd', function(event, data) {
-      var results = data.data;
-      var config = data.config;
-      var didPass = data.didPass;
-
-      if (didPass) {
-        $('<div/>', {
-          html: 'Screening task passed.<br/>totalCorrect: ' + results.totalCorrect
-        }).appendTo($('body'));
-      }
-      else {
-        $('<div/>', {
-          html: 'Screening task failed.<br/>totalCorrect: ' + results.totalCorrect
-        }).appendTo($('body'));
-      }
-
-    });
-
+    // user needs to bind callback to hcHeadphoneCheckEnd event
     HeadphoneCheck.loadStimuli(headphoneCheckConfig.jsonPath);
   };
 
