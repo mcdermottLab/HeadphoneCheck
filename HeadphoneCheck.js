@@ -76,7 +76,6 @@ Contact Ray Gonzalez raygon@mit.edu or Kevin J. P. Woods kwoods@mit.edu
   HeadphoneCheck.loadStimuli = function (jsonPath) {
     function parseLoadedStimuli(event, data) {
       var trialData = data.data;
-      // debugger
       headphoneCheckData.jsonData = trialData;
       if (headphoneCheckConfig.doShuffleTrials) {
         shuffleTrials(trialData.stimuli, headphoneCheckConfig.totalTrials, headphoneCheckConfig.sampleWithReplacement);
@@ -193,7 +192,6 @@ Contact Ray Gonzalez raygon@mit.edu or Kevin J. P. Woods kwoods@mit.edu
           var response = getResponseFromRadioButtonGroup(headphoneCheckData.stimIDList[trialInd]);
           scoreTrial(trialInd, headphoneCheckData.stimDataList[trialInd], response);
         }
-        // debugger
         if (canContinue) { // Advance the page
           if (headphoneCheckData.pageNum == headphoneCheckData.lastPage - 1) {// TODO: -1 for indexing; make indexing consistent
             // handle edge case of first page is last page
