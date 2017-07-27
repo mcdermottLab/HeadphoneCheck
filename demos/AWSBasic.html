@@ -17,6 +17,25 @@ Contact Ray Gonzalez raygon@mit.edu or Kevin J. P. Woods kwoods@mit.edu
     <!-- Import HeadphoneCheck.css from McDermott S3 server -->
     <link rel="stylesheet" type="text/css" href="https://s3.amazonaws.com/mcd-headphone-check/v1.0/src/HeadphoneCheckStyle.css">
   </head>
+  <script>
+    // Bind callback to hcHeadphoneCheckEnd event
+    $(document).on('hcHeadphoneCheckEnd', function(event, data) {
+      var results = data.data;
+      var config = data.config;
+      var didPass = data.didPass;
+
+      if (didPass) {
+        $('<div/>', {
+          html: 'Screening task passed.<br/>totalCorrect: ' + results.totalCorrect
+        }).appendTo($('body'));
+      }
+      else {
+        $('<div/>', {
+          html: 'Screening task failed.<br/>totalCorrect: ' + results.totalCorrect
+        }).appendTo($('body'));
+      }
+    });
+  </script>
   <!-- Run the headphone check when the page finishes loading -->
   <body onload="HeadphoneCheck.runHeadphoneCheck();">
     <div id="hc-container"></div>
