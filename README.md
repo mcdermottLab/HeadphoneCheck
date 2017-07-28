@@ -1,4 +1,6 @@
 # HeadphoneCheck
+[Quick, get me a headphone check!](#code-overview)
+
 This code implements a headphone screening task intended to facilitate web-based experiments employing auditory stimuli. The efficacy of this screening task has been demonstrated in [Woods KJP, Siegel MH, Traer J & McDermott JH (2017) Headphone screening to facilitate web-based auditory experiments. *Attention, Perception & Psychophysics.*](http://mcdermottlab.mit.edu/papers/Woods_etal_2017_headphone_screening.pdf)
 
 As a screening task, it is intended to precede the main task(s), and should be placed at or near the beginning of an online experiment. Participants who pass are allowed through to the remainder of the experiment, but those who do not pass should instead be routed to an ending page and must leave the experiment after screening.
