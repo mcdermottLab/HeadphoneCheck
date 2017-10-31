@@ -29,6 +29,7 @@ Contact Ray Gonzalez raygon@mit.edu or Kevin J. P. Woods kwoods@mit.edu
   // NOTE: DON'T CHANGE VALUES HERE. Use a similar config object to
   // override any default values you wish to change.
   var headphoneCheckDefaultConfig = {jsonPath: undefined,
+                              audioVolume: 1.0,
                               totalTrials: 6,
                               trialsPerPage: 3,
                               correctThreshold: 5/6,
@@ -306,9 +307,9 @@ Contact Ray Gonzalez raygon@mit.edu or Kevin J. P. Woods kwoods@mit.edu
 
     //add in the audio source
     $('<audio/>', {
-        id: 'hc-audio-' + stimID,
-        src: stimFile
-      }).appendTo($('#' + divID));
+      id: 'hc-audio-' + stimID,
+      src: stimFile
+    }).appendTo($('#' + divID));
 
     if (headphoneCheckConfig.debug) {
       $('<div/>', {
@@ -437,6 +438,7 @@ Contact Ray Gonzalez raygon@mit.edu or Kevin J. P. Woods kwoods@mit.edu
     $('#hc-play-button-border-' + stimID).css('border-color', trialBackgroundColor);
 
     // play and set state
+    $('#' + stimFile).get(0).volume = headphoneCheckConfig.audioVolume;
     $('#' + stimFile).get(0).play();
     st_isPlaying = true;
     // hack to disable responding during playback
@@ -466,6 +468,7 @@ Contact Ray Gonzalez raygon@mit.edu or Kevin J. P. Woods kwoods@mit.edu
       st_isPlaying = false;
       $('#hc-calibration-continue-button').prop('disabled', false);
     });
+    $('#' + calibrationID).get(0).volume = headphoneCheckConfig.audioVolume;
     $('#' + calibrationID).get(0).play();
     st_isPlaying = true;
   }
