@@ -1,24 +1,27 @@
 # HeadphoneCheck
 [Quick, get me a headphone check!](#code-overview)
 
+
 This code implements a headphone screening task intended to facilitate web-based experiments employing auditory stimuli. The efficacy of this screening task has been demonstrated in [Woods KJP, Siegel MH, Traer J & McDermott JH (2017) Headphone screening to facilitate web-based auditory experiments. *Attention, Perception & Psychophysics.*](http://mcdermottlab.mit.edu/papers/Woods_etal_2017_headphone_screening.pdf)
 
 As a screening task, it is intended to precede the main task(s), and should be placed at or near the beginning of an online experiment. Participants who pass are allowed through to the remainder of the experiment, but those who do not pass should instead be routed to an ending page and must leave the experiment after screening.
 
-The task is a 3-AFC "Which tone is quietest?" task with 200Hz pure tones. Unbeknownst to the participant, a random one of the tones is in antiphase across the stereo channels, resulting in heavy attenuation only when heard over loudspeakers (but not over headphones). This results in very poor performance if the task is attempted without headphones. 
+The task is a 3-AFC "Which tone is quietest?" task with 200Hz pure tones. Unbeknownst to the participant, a random one of the tones is in antiphase across the stereo channels, resulting in heavy attenuation only when heard over loudspeakers (but not over headphones). This results in very poor performance if the task is attempted without headphones.
 
-Six trials of this task, passing participants with at least five trials correct, appears sufficient to detect if a participant is using headphones or not (Woods et al. 2017), at least to a degree of accuracy acceptable for most practical purposes. Increasing the number of trials should only improve the accuracy of the screening (at the cost of participant time/pay). Decreasing the number of trials is **highly discouraged**! 
+Six trials of this task, passing participants with at least five trials correct, appears sufficient to detect if a participant is using headphones or not (Woods et al. 2017), at least to a degree of accuracy acceptable for most practical purposes. Increasing the number of trials should only improve the accuracy of the screening (at the cost of participant time/pay). Decreasing the number of trials is **highly discouraged**!
 
-For code support, bug fixes, or feature requests contact Ray Gonzalez raygon@mit.edu.  
+For code support, bug fixes, or feature requests contact Ray Gonzalez raygon@mit.edu.
 For other issues, contact Kevin J. P. Woods kwoods@mit.edu.
 
 ## Code Overview
-Setting up a headphone screening requires the following steps:
+If you don't want to use javascript or you'd like to build your own headphone check, see [this issue](https://github.com/mcdermottLab/HeadphoneCheck/issues/2).
+
+Otherwise, setting up a headphone screening requires the following steps:
 
 1. [Source jQuery](#dependencies)
 2. [Source HeadphoneCheck.js and HeadphoneCheck.css](#loading-headphonecheck-scripts) (alternatively, use our minified versions hosted on AWS S3)
 3. [Create a div with the ID *"hc-container"*](#defining-headphonecheck-container) in the HTML document where you want the headphone check to be rendered
-4. [Define what to do after the headphone check completes](#defining-what-to-do-after-headphone-check-completes) by attaching a listener to the *hcHeadphoneCheckEnd* event. 
+4. [Define what to do after the headphone check completes](#defining-what-to-do-after-headphone-check-completes) by attaching a listener to the *hcHeadphoneCheckEnd* event.
 5. [Call *HeadphoneCheck.runHeadphoneCheck();* to begin the headphone check](#configure-and-start-the-headphone-check). To customize the headphone check, you can pass in an object of property:value pairs. For instance, a default headphone check without sound calibration can be run with *HeadphoneCheck.runHeadphoneCheck({doCalibration: false});*
 
 A minimal example of a headphone check follows:
@@ -63,7 +66,7 @@ HeadphoneCheck requires [jQuery](https://jquery.com). The code was tested using 
 ## Loading HeadphoneCheck Scripts
 The headphone check functionality is implemented in *HeadphoneCheck.js*. Some basic styling is provided by *HeadphoneCheckStyle.css*. These resources need to be included with your scripts, e.g. in the head or at the end of the body.
 
-If you decide that you don't want to host this code yourself, and you are okay with the standard headphone check implementation, you can source these files from our AWS S3 server. Note that you can still customize the headphone check with this code, but the source code is fixed. The associated files are located at: 
+If you decide that you don't want to host this code yourself, and you are okay with the standard headphone check implementation, you can source these files from our AWS S3 server. Note that you can still customize the headphone check with this code, but the source code is fixed. The associated files are located at:
 
 + https://s3.amazonaws.com/mcd-headphone-check/v1.0/src/HeadphoneCheck.min.js
 + https://s3.amazonaws.com/mcd-headphone-check/v1.0/src/HeadphoneCheckStyle.css
@@ -93,7 +96,7 @@ If you decide that you don't want to host this code yourself, and you are okay w
 ```
 
 ## Defining HeadphoneCheck Container
-For now, the headphone check and all of the associated components will be rendered in an element with the ID *"hc-container"*. You'll need to create an element (e.g., a `<div>` element) with this ID in order to use the headphone check. This can be done in an HTML file or dynamically with Javascript or jQuery. 
+For now, the headphone check and all of the associated components will be rendered in an element with the ID *"hc-container"*. You'll need to create an element (e.g., a `<div>` element) with this ID in order to use the headphone check. This can be done in an HTML file or dynamically with Javascript or jQuery.
 
 **Statically defining headphone check container element:**
 ```html
@@ -117,7 +120,7 @@ The *hcHeadphoneCheckEnd* event will pass two arguments to the callback function
 + **event:** A jQuery.Event that contains information related to the event.
 + **data:** An Object that contains the following fields:
   + *didPass:* Boolean indicating if the headphone check was passed or failed, i.e., if the percentage of correct responses is at least as large as the correct threshold.
-  + *data:* Object containing the responses and related data for this headphone check. The fields are described below. 
+  + *data:* Object containing the responses and related data for this headphone check. The fields are described below.
     + *didPass:* A Boolean indicating if the headphone check was passed or failed.
     + *totalCorrect:* Total number of correct responses.
     + *trialScoreList:* The participant's score (1 or 0) on each trail of the headphone check.
@@ -137,19 +140,19 @@ $(document).ready(function() {
     var headphoneCheckDidPass = data.didPass;
     var headphoneCheckData = data.data;
     var didPassMessage = headphoneCheckDidPass ? 'passed' : 'failed';
-    alert('Screening task ' + '. ' + headphoneCheckData.totalCorrect + 
+    alert('Screening task ' + '. ' + headphoneCheckData.totalCorrect +
     '/' + headphoneCheckData.stimIDList.length + ' trials correct');
   });
 });
 ```
 
 ## Configure and start the headphone check
-To begin the headphone check, you must call *HeadphoneCheck.runHeadphoneCheck();*. If no configuration object is provided as an argument to this function, the default headphone check (the one described in the original paper) will be used. 
+To begin the headphone check, you must call *HeadphoneCheck.runHeadphoneCheck();*. If no configuration object is provided as an argument to this function, the default headphone check (the one described in the original paper) will be used.
 
 ### Configuration Options
 To customize the headphone check, you can pass in an object of property:value pairs. The complete list of options, along with their default parameters is provided below.
 ```javascript
-headphoneCheckDefaultConfig = 
+headphoneCheckDefaultConfig =
 {
   jsonPath: undefined, // URL to json file containing stimulus/resource URLs.
   totalTrials: 6, // Total number of trials.
@@ -243,5 +246,5 @@ $(document).on('hcHeadphoneCheckStart', function(event, data) {
 This should work when served off the filesystem. However, if you run into cross origin request errors, this code can be tested locally by starting a HTTP server, e.g. python simple HTTP server:
 ```bash
 python -m SimpleHTTPServer 8000
-``` 
+```
 You can then access a demo page at http://localhost:8000/demos/HeadphoneCheckCustomized.html
