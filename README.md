@@ -155,6 +155,7 @@ To customize the headphone check, you can pass in an object of property:value pa
 headphoneCheckDefaultConfig =
 {
   jsonPath: undefined, // URL to json file containing stimulus/resource URLs.
+  audioVolume: 1.0, // Volume of the stimuli and the calibration sound, relative to their default (e.g., a setting of 0.5 plays the sounds at half volume).
   totalTrials: 6, // Total number of trials.
   trialsPerPage: 3, // Number of trials to render on a single page.
   correctThreshold: 5/6, // Minimum percentage of correct responses required to pass the headphone screening.
